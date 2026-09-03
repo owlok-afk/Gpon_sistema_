@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
-import L from 'leaflet'
+import L, { LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { supabase } from '@/lib/supabase'
 
@@ -24,17 +24,18 @@ import {
   faChevronRight, 
   faInfoCircle, 
   faExclamationTriangle,
-  faChevronDown,
   faRoute
 } from '@fortawesome/free-solid-svg-icons'
 
 // Fix para los iconos de Leaflet
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-})
+if (typeof window !== 'undefined') {
+  delete (L.Icon.Default.prototype as any)._getIconUrl
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  })
+}
 
 // ====================== COMPONENTES ======================
 
@@ -168,7 +169,6 @@ function BuscadorEscuelas({ escuelas, onSelect }: { escuelas: Escuela[], onSelec
 // ====================== FUNCIÓN PARA ABRIR GOOGLE MAPS ======================
 
 function abrirGoogleMaps(lat: number, lng: number, nombre: string) {
-  // URL para abrir Google Maps con la ubicación y ruta desde tu ubicación actual
   const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=&travelmode=driving`
   window.open(url, '_blank')
 }
@@ -239,6 +239,9 @@ export default function MapaEscuelas() {
     </div>
   )
 
+  // Centro del mapa (México)
+  const center: LatLngExpression = [19.4326, -99.1332]
+
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden bg-gray-50">
       {/* HEADER */}
@@ -273,16 +276,15 @@ export default function MapaEscuelas() {
         {/* MAPA */}
         <div className={`${modoVista === 'mapa' ? 'flex-1' : 'hidden md:flex md:flex-1'} relative`}>
           <MapContainer
-            center={[19.4326, -99.1332]}
+            center={center}
             zoom={6}
             style={{ height: '100%', width: '100%' }}
             zoomControl={false}
-            ref={mapRef as any}
+            ref={mapRef}
             className="z-0"
           >
             <TileLayer
-              url='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-              attribution=''
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
               maxZoom={19}
             />
 
@@ -291,16 +293,17 @@ export default function MapaEscuelas() {
             {escuelasConUbicacion.map((escuela) => {
               const lat = escuela.latitude!
               const lng = escuela.longitude!
+              const position: LatLngExpression = [lat, lng]
 
               return (
                 <Marker 
                   key={escuela.id} 
-                  position={[lat, lng]}
+                  position={position}
                   eventHandlers={{
                     click: () => setEscuelaSeleccionada(escuela)
                   }}
                 >
-                  <Popup className="custom-popup" minWidth={260} maxWidth={340}>
+                  <Popup minWidth={260} maxWidth={340}>
                     <div className="p-1">
                       <div className="font-semibold text-gray-800 border-b border-gray-100 pb-1.5 mb-1.5">
                         {escuela.nombre}
@@ -330,7 +333,6 @@ export default function MapaEscuelas() {
                         </div>
                       )}
                       
-                      {/* BOTÓN CÓMO LLEGAR - NUEVO */}
                       <div className="mt-3 grid grid-cols-2 gap-2">
                         <button
                           onClick={() => {
