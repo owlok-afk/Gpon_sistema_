@@ -11,20 +11,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { 
   faPlus, 
   faMinus, 
-  faCrosshairs, 
   faLocationDot, 
   faSearch, 
   faXmark, 
-  faList, 
-  faMap, 
   faSchool, 
   faUser, 
   faPhone, 
   faEnvelope, 
-  faChevronRight, 
-  faInfoCircle, 
-  faExclamationTriangle,
-  faRoute
+  faInfoCircle,
+  faRoute,
+  faEdit,
+  faHome
 } from '@fortawesome/free-solid-svg-icons'
 
 // Fix para los iconos de Leaflet
@@ -39,52 +36,38 @@ if (typeof window !== 'undefined') {
 
 // ====================== COMPONENTES ======================
 
+// Controles de zoom simples
 function ControlesZoom() {
   const map = useMap()
   
   return (
-    <div className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-2 sm:bottom-4 sm:right-4">
+    <div className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-2">
       <button
         onClick={() => map.zoomIn()}
-        className="bg-white w-11 h-11 sm:w-9 sm:h-9 rounded-lg shadow-md hover:bg-gray-50 flex items-center justify-center border border-gray-200 active:bg-gray-100 transition-colors duration-150"
+        className="bg-white w-10 h-10 rounded-full shadow-md hover:bg-gray-50 flex items-center justify-center text-xl font-bold border border-gray-200 active:bg-gray-100"
         title="Acercar"
       >
-        <FontAwesomeIcon icon={faPlus} className="text-gray-700 text-sm" />
+        +
       </button>
       <button
         onClick={() => map.zoomOut()}
-        className="bg-white w-11 h-11 sm:w-9 sm:h-9 rounded-lg shadow-md hover:bg-gray-50 flex items-center justify-center border border-gray-200 active:bg-gray-100 transition-colors duration-150"
+        className="bg-white w-10 h-10 rounded-full shadow-md hover:bg-gray-50 flex items-center justify-center text-xl font-bold border border-gray-200 active:bg-gray-100"
         title="Alejar"
       >
-        <FontAwesomeIcon icon={faMinus} className="text-gray-700 text-sm" />
+        −
       </button>
       <button
-        onClick={() => map.setView([19.4326, -99.1332], 6)}
-        className="bg-white w-11 h-11 sm:w-9 sm:h-9 rounded-lg shadow-md hover:bg-gray-50 flex items-center justify-center border border-gray-200 active:bg-gray-100 transition-colors duration-150"
-        title="Centrar mapa"
+        onClick={() => map.setView([19.95, -99.65], 10)}
+        className="bg-blue-600 w-10 h-10 rounded-full shadow-md hover:bg-blue-700 flex items-center justify-center text-white border border-blue-700 active:bg-blue-800"
+        title="Ver todo el Estado de México"
       >
-        <FontAwesomeIcon icon={faCrosshairs} className="text-gray-700 text-sm" />
-      </button>
-      <button
-        onClick={() => {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                map.flyTo([pos.coords.latitude, pos.coords.longitude], 15)
-              },
-              () => alert('No se pudo obtener tu ubicación')
-            )
-          }
-        }}
-        className="bg-blue-600 w-11 h-11 sm:w-9 sm:h-9 rounded-lg shadow-md hover:bg-blue-700 flex items-center justify-center border border-blue-700 active:bg-blue-800 transition-colors duration-150"
-        title="Mi ubicación"
-      >
-        <FontAwesomeIcon icon={faLocationDot} className="text-white text-sm" />
+        <FontAwesomeIcon icon={faHome} className="text-sm" />
       </button>
     </div>
   )
 }
 
+// Buscador simplificado
 function BuscadorEscuelas({ escuelas, onSelect }: { escuelas: Escuela[], onSelect: (escuela: Escuela) => void }) {
   const [busqueda, setBusqueda] = useState('')
   const [resultados, setResultados] = useState<Escuela[]>([])
@@ -96,7 +79,7 @@ function BuscadorEscuelas({ escuelas, onSelect }: { escuelas: Escuela[], onSelec
         e.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
         (e.domicilio && e.domicilio.toLowerCase().includes(busqueda.toLowerCase()))
       )
-      setResultados(filtradas.slice(0, 10))
+      setResultados(filtradas.slice(0, 8))
       setMostrarResultados(true)
     } else {
       setResultados([])
@@ -105,7 +88,7 @@ function BuscadorEscuelas({ escuelas, onSelect }: { escuelas: Escuela[], onSelec
   }, [busqueda, escuelas])
 
   return (
-    <div className="relative w-full max-w-xs">
+    <div className="relative w-full max-w-sm">
       <div className="relative">
         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
           <FontAwesomeIcon icon={faSearch} className="text-sm" />
@@ -116,7 +99,7 @@ function BuscadorEscuelas({ escuelas, onSelect }: { escuelas: Escuela[], onSelec
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           onFocus={() => busqueda.length > 1 && setMostrarResultados(true)}
-          className="w-full pl-9 pr-10 py-2.5 sm:py-2 text-sm rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow duration-150 bg-white"
+          className="w-full pl-9 pr-10 py-2 text-sm rounded-full border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
         />
         {busqueda && (
           <button
@@ -125,15 +108,15 @@ function BuscadorEscuelas({ escuelas, onSelect }: { escuelas: Escuela[], onSelec
               setResultados([])
               setMostrarResultados(false)
             }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
-            <FontAwesomeIcon icon={faXmark} className="text-sm" />
+            <FontAwesomeIcon icon={faXmark} />
           </button>
         )}
       </div>
       
       {mostrarResultados && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-60 overflow-y-auto z-[1001]">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-200 max-h-52 overflow-y-auto z-[1001]">
           {resultados.length > 0 ? (
             resultados.map((escuela) => (
               <button
@@ -144,15 +127,12 @@ function BuscadorEscuelas({ escuelas, onSelect }: { escuelas: Escuela[], onSelec
                   setResultados([])
                   setMostrarResultados(false)
                 }}
-                className="w-full text-left px-4 py-2.5 hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors duration-150 flex items-center justify-between group"
+                className="w-full text-left px-4 py-2.5 hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors"
               >
-                <div>
-                  <div className="font-medium text-sm text-gray-800">{escuela.nombre}</div>
-                  {escuela.domicilio && (
-                    <div className="text-xs text-gray-500">{escuela.domicilio}</div>
-                  )}
-                </div>
-                <FontAwesomeIcon icon={faChevronRight} className="text-gray-300 group-hover:text-gray-500 text-xs transition-colors" />
+                <div className="font-medium text-sm">{escuela.nombre}</div>
+                {escuela.domicilio && (
+                  <div className="text-xs text-gray-500">{escuela.domicilio}</div>
+                )}
               </button>
             ))
           ) : (
@@ -166,11 +146,11 @@ function BuscadorEscuelas({ escuelas, onSelect }: { escuelas: Escuela[], onSelec
   )
 }
 
-// ====================== FUNCIÓN PARA ABRIR GOOGLE MAPS ======================
-
-function abrirGoogleMaps(lat: number, lng: number, nombre: string) {
-  const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=&travelmode=driving`
-  window.open(url, '_blank')
+function abrirGoogleMaps(lat: number, lng: number) {
+  window.open(
+    `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`,
+    '_blank'
+  )
 }
 
 type Escuela = {
@@ -192,8 +172,6 @@ type Escuela = {
 export default function MapaEscuelas() {
   const [instituciones, setInstituciones] = useState<Escuela[]>([])
   const [loading, setLoading] = useState(true)
-  const [escuelaSeleccionada, setEscuelaSeleccionada] = useState<Escuela | null>(null)
-  const [modoVista, setModoVista] = useState<'mapa' | 'lista'>('mapa')
   const mapRef = useRef<L.Map | null>(null)
 
   useEffect(() => {
@@ -218,271 +196,151 @@ export default function MapaEscuelas() {
   }
 
   const escuelasConUbicacion = instituciones.filter(e => e.latitude && e.longitude)
-  const escuelasSinUbicacion = instituciones.filter(e => !e.latitude || !e.longitude)
 
   function irAEscuela(escuela: Escuela) {
     if (escuela.latitude && escuela.longitude && mapRef.current) {
-      mapRef.current.flyTo([escuela.latitude, escuela.longitude], 16, { duration: 1.2 })
-      setEscuelaSeleccionada(escuela)
-      if (window.innerWidth < 768) {
-        setModoVista('mapa')
-      }
+      mapRef.current.flyTo([escuela.latitude, escuela.longitude], 15, { duration: 1 })
     }
   }
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="text-center">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-600 text-sm">Cargando mapa...</p>
+        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+        <p className="text-gray-500 text-sm">Cargando mapa...</p>
       </div>
     </div>
   )
 
-  // Centro del mapa (México)
-  const center: LatLngExpression = [19.4326, -99.1332]
+  const center: LatLngExpression = [19.95, -99.65]
+  const zoom = 10
 
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden bg-gray-50">
       {/* HEADER */}
-      <header className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 sm:p-4 bg-white border-b border-gray-200 shadow-sm z-10">
+      <header className="flex flex-col sm:flex-row items-center justify-between gap-2 p-3 bg-white border-b border-gray-200 shadow-sm z-10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
             <FontAwesomeIcon icon={faSchool} className="text-white text-sm" />
           </div>
-          <h1 className="text-lg sm:text-xl font-semibold text-gray-800">
-            Mapa de Escuelas
-            <span className="text-sm font-normal text-gray-400 ml-2 hidden sm:inline">
-              {escuelasConUbicacion.length} ubicadas
-            </span>
-          </h1>
+          <div>
+            <h1 className="text-base sm:text-lg font-semibold text-gray-800">
+              Escuelas
+              <span className="text-sm font-normal text-gray-400 ml-2">
+                {escuelasConUbicacion.length}
+              </span>
+            </h1>
+          </div>
         </div>
         
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <BuscadorEscuelas escuelas={escuelasConUbicacion} onSelect={irAEscuela} />
           
-          <button
-            onClick={() => setModoVista(modoVista === 'mapa' ? 'lista' : 'mapa')}
-            className="px-3 py-2.5 sm:px-4 sm:py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-150 text-sm text-gray-700 flex items-center gap-2 whitespace-nowrap"
+          <a
+            href="/admin"
+            className="px-3 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors text-sm flex items-center gap-1.5 whitespace-nowrap"
           >
-            <FontAwesomeIcon icon={modoVista === 'mapa' ? faList : faMap} />
-            <span className="hidden sm:inline">{modoVista === 'mapa' ? 'Lista' : 'Mapa'}</span>
-          </button>
+            <FontAwesomeIcon icon={faEdit} className="text-xs" />
+            <span className="hidden sm:inline">Administrar</span>
+          </a>
         </div>
       </header>
 
-      {/* CONTENIDO */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-        {/* MAPA */}
-        <div className={`${modoVista === 'mapa' ? 'flex-1' : 'hidden md:flex md:flex-1'} relative`}>
-          <MapContainer
-            center={center}
-            zoom={6}
-            style={{ height: '100%', width: '100%' }}
-            zoomControl={false}
-            ref={mapRef}
-            className="z-0"
-          >
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              maxZoom={19}
-            />
-
-            <ControlesZoom />
-
-            {escuelasConUbicacion.map((escuela) => {
-              const lat = escuela.latitude!
-              const lng = escuela.longitude!
-              const position: LatLngExpression = [lat, lng]
-
-              return (
-                <Marker 
-                  key={escuela.id} 
-                  position={position}
-                  eventHandlers={{
-                    click: () => setEscuelaSeleccionada(escuela)
-                  }}
-                >
-                  <Popup minWidth={260} maxWidth={340}>
-                    <div className="p-1">
-                      <div className="font-semibold text-gray-800 border-b border-gray-100 pb-1.5 mb-1.5">
-                        {escuela.nombre}
-                      </div>
-                      {escuela.domicilio && (
-                        <div className="text-sm text-gray-600 flex items-start gap-1.5 mt-1">
-                          <FontAwesomeIcon icon={faLocationDot} className="text-gray-400 text-xs mt-0.5" />
-                          <span>{escuela.domicilio}</span>
-                        </div>
-                      )}
-                      {escuela.director && (
-                        <div className="text-sm text-gray-700 flex items-center gap-1.5 mt-1">
-                          <FontAwesomeIcon icon={faUser} className="text-gray-400 text-xs" />
-                          <span>{escuela.director}</span>
-                        </div>
-                      )}
-                      {escuela.telefono && (
-                        <div className="text-sm text-gray-700 flex items-center gap-1.5 mt-1">
-                          <FontAwesomeIcon icon={faPhone} className="text-gray-400 text-xs" />
-                          <span>{escuela.telefono}</span>
-                        </div>
-                      )}
-                      {escuela.correo && (
-                        <div className="text-sm text-blue-600 flex items-center gap-1.5 mt-1">
-                          <FontAwesomeIcon icon={faEnvelope} className="text-blue-400 text-xs" />
-                          <span>{escuela.correo}</span>
-                        </div>
-                      )}
-                      
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => {
-                            if (escuela.latitude && escuela.longitude && mapRef.current) {
-                              mapRef.current.flyTo([escuela.latitude, escuela.longitude], 17)
-                            }
-                          }}
-                          className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-md transition-colors duration-150 flex items-center justify-center gap-1.5"
-                        >
-                          <FontAwesomeIcon icon={faCrosshairs} className="text-xs" />
-                          Centrar
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (escuela.latitude && escuela.longitude) {
-                              abrirGoogleMaps(escuela.latitude, escuela.longitude, escuela.nombre)
-                            }
-                          }}
-                          className="text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md transition-colors duration-150 flex items-center justify-center gap-1.5"
-                        >
-                          <FontAwesomeIcon icon={faRoute} className="text-xs" />
-                          Cómo llegar
-                        </button>
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              )
-            })}
-          </MapContainer>
-
-          {/* Leyenda flotante */}
-          <div className="absolute bottom-4 left-3 right-3 sm:left-4 sm:right-auto z-[1000] bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg border border-gray-200 flex flex-wrap items-center justify-center gap-3 text-xs text-gray-600">
-            <span className="flex items-center gap-1.5">
-              <FontAwesomeIcon icon={faLocationDot} className="text-blue-500 text-xs" />
-              {escuelasConUbicacion.length} escuelas
-            </span>
-            <span className="hidden sm:inline text-gray-300">|</span>
-            <span className="flex items-center gap-1.5">
-              <FontAwesomeIcon icon={faInfoCircle} className="text-gray-400 text-xs" />
-              Click para info
-            </span>
-            <span className="hidden sm:inline text-gray-300">|</span>
-            <span className="flex items-center gap-1.5 text-green-600">
-              <FontAwesomeIcon icon={faRoute} className="text-xs" />
-              Cómo llegar
-            </span>
-          </div>
-
-          {/* Alerta de escuelas sin ubicación */}
-          {escuelasSinUbicacion.length > 0 && (
-            <div className="absolute top-4 left-3 right-3 z-[1000]">
-              <div className="bg-amber-50 border border-amber-300 text-amber-800 px-4 py-2 rounded-lg shadow-lg text-sm flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faExclamationTriangle} className="text-amber-500" />
-                  <span>{escuelasSinUbicacion.length} escuelas sin ubicación</span>
-                </div>
-                <button 
-                  onClick={() => setModoVista('lista')}
-                  className="text-xs text-amber-700 hover:text-amber-900 underline font-medium"
-                >
-                  Ver listado
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* LISTA LATERAL */}
-        <div className={`
-          ${modoVista === 'lista' ? 'flex-1' : 'hidden md:flex'}
-          md:flex md:w-80 lg:w-96 md:flex-shrink-0
-          bg-white shadow-lg overflow-hidden flex-col
-        `}>
-          <div className="p-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="font-medium text-gray-700 text-sm flex items-center gap-2">
-              <FontAwesomeIcon icon={faList} className="text-gray-400" />
-              Escuelas ({escuelasConUbicacion.length})
-            </h2>
-            <button
-              onClick={() => setModoVista('mapa')}
-              className="md:hidden text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <FontAwesomeIcon icon={faXmark} />
-            </button>
-          </div>
+      {/* MAPA CON CALLES */}
+      <div className="flex-1 relative">
+        <MapContainer
+          center={center}
+          zoom={zoom}
+          style={{ height: '100%', width: '100%' }}
+          zoomControl={false}
+          ref={mapRef}
+          className="z-0"
+        >
+          {/* Capa satelital con etiquetas integradas */}
+          <TileLayer
+            url="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={19}
+          />
           
-          <div className="flex-1 overflow-y-auto p-3">
-            {escuelasConUbicacion.length === 0 ? (
-              <div className="text-center text-gray-500 py-8 text-sm">
-                No hay escuelas con ubicación
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {escuelasConUbicacion.map((escuela) => (
-                  <div
-                    key={escuela.id}
-                    onClick={() => irAEscuela(escuela)}
-                    className={`
-                      p-3 rounded-lg border cursor-pointer transition-all duration-150
-                      ${escuelaSeleccionada?.id === escuela.id 
-                        ? 'border-blue-500 bg-blue-50 shadow-sm' 
-                        : 'border-gray-200 hover:border-blue-300 hover:shadow-sm hover:bg-gray-50'
-                      }
-                    `}
-                  >
-                    <div className="font-medium text-sm text-gray-800">{escuela.nombre}</div>
+          {/* Capa de nombres de calles y lugares - SUPERPUESTA MÁS NÍTIDA */}
+          <TileLayer
+            url="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={19}
+            className="opacity-90"
+          />
+
+          <ControlesZoom />
+
+          {escuelasConUbicacion.map((escuela) => {
+            const lat = escuela.latitude!
+            const lng = escuela.longitude!
+            const position: LatLngExpression = [lat, lng]
+
+            return (
+              <Marker key={escuela.id} position={position}>
+                <Popup minWidth={200} maxWidth={280}>
+                  <div className="p-1">
+                    <div className="font-semibold text-gray-800 text-sm border-b border-gray-100 pb-1 mb-1">
+                      {escuela.nombre}
+                    </div>
                     {escuela.domicilio && (
-                      <div className="text-xs text-gray-500 mt-0.5 flex items-start gap-1.5">
-                        <FontAwesomeIcon icon={faLocationDot} className="text-gray-400 text-xs mt-0.5" />
+                      <div className="text-xs text-gray-600 flex items-start gap-1.5 mt-1">
+                        <FontAwesomeIcon icon={faLocationDot} className="text-gray-400 text-[10px] mt-0.5" />
                         <span>{escuela.domicilio}</span>
                       </div>
                     )}
-                    <div className="flex items-center gap-3 mt-1">
-                      {escuela.director && (
-                        <span className="text-xs text-gray-600 flex items-center gap-1">
-                          <FontAwesomeIcon icon={faUser} className="text-gray-400 text-[10px]" />
-                          {escuela.director}
-                        </span>
-                      )}
-                      {escuela.telefono && (
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
-                          <FontAwesomeIcon icon={faPhone} className="text-gray-400 text-[10px]" />
-                          {escuela.telefono}
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-1 flex items-center justify-between">
-                      <div className="text-xs text-gray-400 flex items-center gap-1">
-                        <FontAwesomeIcon icon={faLocationDot} className="text-gray-300 text-[10px]" />
-                        {escuela.latitude?.toFixed(4)}, {escuela.longitude?.toFixed(4)}
+                    {escuela.director && (
+                      <div className="text-xs text-gray-700 flex items-center gap-1.5 mt-0.5">
+                        <FontAwesomeIcon icon={faUser} className="text-gray-400 text-[10px]" />
+                        <span>{escuela.director}</span>
                       </div>
-                      {escuela.latitude && escuela.longitude && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            abrirGoogleMaps(escuela.latitude!, escuela.longitude!, escuela.nombre)
-                          }}
-                          className="text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded transition-colors duration-150 flex items-center gap-1"
-                        >
-                          <FontAwesomeIcon icon={faRoute} className="text-[10px]" />
-                          Llegar
-                        </button>
-                      )}
-                    </div>
+                    )}
+                    {escuela.telefono && (
+                      <div className="text-xs text-gray-700 flex items-center gap-1.5 mt-0.5">
+                        <FontAwesomeIcon icon={faPhone} className="text-gray-400 text-[10px]" />
+                        <span>{escuela.telefono}</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => {
+                        if (escuela.latitude && escuela.longitude) {
+                          abrirGoogleMaps(escuela.latitude, escuela.longitude)
+                        }
+                      }}
+                      className="mt-2 text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-full transition-colors w-full flex items-center justify-center gap-1.5"
+                    >
+                      <FontAwesomeIcon icon={faRoute} className="text-[10px]" />
+                      Cómo llegar
+                    </button>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                </Popup>
+              </Marker>
+            )
+          })}
+        </MapContainer>
+
+        {/* Leyenda flotante */}
+        <div className="absolute bottom-4 left-3 right-3 z-[1000] bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg text-xs text-gray-600 flex flex-wrap items-center justify-center gap-3">
+          <span className="flex items-center gap-1.5">
+            <FontAwesomeIcon icon={faLocationDot} className="text-blue-500 text-xs" />
+            {escuelasConUbicacion.length} escuelas
+          </span>
+          <span className="text-gray-300">|</span>
+          <span className="flex items-center gap-1.5">
+            <FontAwesomeIcon icon={faInfoCircle} className="text-gray-400 text-xs" />
+            Click para info
+          </span>
+          <span className="text-gray-300">|</span>
+          <span className="flex items-center gap-1 text-gray-400">
+            + / − Zoom
+          </span>
+        </div>
+
+        {/* Título del área */}
+        <div className="absolute top-4 left-3 right-3 z-[1000] pointer-events-none">
+          <p className="text-center text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full inline-block mx-auto w-auto">
+            🗺️ Norte del Estado de México
+          </p>
         </div>
       </div>
     </div>
