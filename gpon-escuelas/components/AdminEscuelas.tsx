@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { MapContainer, TileLayer, Marker, useMap, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, useMap, Popup, useMapEvents } from 'react-leaflet'
 import L, { LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { supabase } from '@/lib/supabase'
@@ -25,7 +25,10 @@ import {
   faEnvelope,
   faInfoCircle,
   faExclamationTriangle,
-  faHome
+  faHome,
+  faArrowsUpDown,
+  faMapPin,
+  faGlobe
 } from '@fortawesome/free-solid-svg-icons'
 
 // Fix para los iconos de Leaflet
@@ -52,18 +55,19 @@ type Escuela = {
   created_at: string
 }
 
-// ====================== COMPONENTE DE SELECCIÓN DE UBICACIÓN ======================
+// ====================== COMPONENTE DE MAPA CON ARRASTRE ======================
 
-function SelectorUbicacion({ 
+function MapaConArrastre({ 
   posicion, 
-  setPosicion, 
-  modoEdicion 
+  setPosicion,
+  setCoordenadas
 }: { 
   posicion: { lat: number; lng: number } | null
   setPosicion: (pos: { lat: number; lng: number } | null) => void
-  modoEdicion: boolean
+  setCoordenadas: (lat: number, lng: number) => void
 }) {
   const mapRef = useRef<L.Map | null>(null)
+  const markerRef = useRef<L.Marker | null>(null)
   const [center, setCenter] = useState<LatLngExpression>([19.95, -99.65])
 
   useEffect(() => {
@@ -75,15 +79,63 @@ function SelectorUbicacion({
     }
   }, [posicion])
 
-  function handleMapClick(e: L.LeafletMouseEvent) {
-    if (modoEdicion) {
-      const { lat, lng } = e.latlng
-      setPosicion({ lat, lng })
-    }
+  // Componente para manejar eventos del mapa
+  function MapEvents() {
+    useMapEvents({
+      click(e) {
+        const { lat, lng } = e.latlng
+        setPosicion({ lat, lng })
+        setCoordenadas(lat, lng)
+      }
+    })
+    return null
+  }
+
+  // Componente para marcador arrastrable
+  function DraggableMarker() {
+    const map = useMap()
+    
+    useEffect(() => {
+      if (!posicion) return
+
+      // Crear icono personalizado más grande
+      const icon = new L.Icon({
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+        iconSize: [30, 45],
+        iconAnchor: [15, 45],
+        popupAnchor: [0, -35],
+      })
+
+      const marker = L.marker([posicion.lat, posicion.lng], {
+        draggable: true,
+        icon: icon
+      }).addTo(map)
+
+      marker.on('dragend', function(e) {
+        const newPos = marker.getLatLng()
+        setPosicion({ lat: newPos.lat, lng: newPos.lng })
+        setCoordenadas(newPos.lat, newPos.lng)
+      })
+
+      // Abrir popup al crear
+      marker.bindPopup('📍 Arrastra el marcador para ajustar la ubicación').openPopup()
+
+      markerRef.current = marker
+
+      return () => {
+        if (markerRef.current) {
+          map.removeLayer(markerRef.current)
+        }
+      }
+    }, [posicion, map, setPosicion, setCoordenadas])
+
+    return null
   }
 
   return (
-    <div className="relative w-full h-[350px] rounded-xl overflow-hidden border border-gray-300">
+    <div className="relative w-full h-[400px] rounded-xl overflow-hidden border-2 border-gray-300">
       <MapContainer
         center={center}
         zoom={posicion ? 15 : 10}
@@ -91,40 +143,17 @@ function SelectorUbicacion({
         zoomControl={false}
         ref={mapRef}
         className="z-0"
-        whenReady={() => {
-          if (mapRef.current) {
-            mapRef.current.on('click', handleMapClick)
-          }
-        }}
       >
-        {/* Capa satelital con etiquetas integradas */}
         <TileLayer
-          url="https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          maxZoom={19}
-        />
-        
-        {/* Capa de nombres de calles y lugares - MÁS NÍTIDA */}
-        <TileLayer
-          url="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-          maxZoom={19}
-          className="opacity-90"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/">CARTO</a>'
+          maxZoom={20}
         />
 
-        {posicion && (
-          <Marker position={[posicion.lat, posicion.lng]}>
-            <Popup>
-              <div className="text-sm font-medium">
-                📍 Ubicación seleccionada
-                <br />
-                <span className="text-xs text-gray-500">
-                  {posicion.lat.toFixed(6)}, {posicion.lng.toFixed(6)}
-                </span>
-              </div>
-            </Popup>
-          </Marker>
-        )}
+        <MapEvents />
+        <DraggableMarker />
 
-        {/* Controles de zoom simples */}
+        {/* Controles de zoom */}
         <div className="absolute bottom-4 right-4 z-[1000] flex flex-col gap-2">
           <button
             onClick={() => mapRef.current?.zoomIn()}
@@ -150,43 +179,30 @@ function SelectorUbicacion({
           </button>
         </div>
 
-        {/* Mensaje de ayuda */}
-        <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow text-xs text-gray-600">
-          {modoEdicion ? (
-            <span className="flex items-center gap-1.5">
-              <FontAwesomeIcon icon={faCrosshairs} className="text-blue-500 text-xs" />
-              Haz clic en el mapa para seleccionar ubicación
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5 text-gray-400">
-              <FontAwesomeIcon icon={faInfoCircle} className="text-xs" />
-              Activa edición para seleccionar ubicación
-            </span>
-          )}
+        {/* Instrucciones */}
+        <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow text-xs text-gray-600 flex items-center gap-2">
+          <FontAwesomeIcon icon={faArrowsUpDown} className="text-blue-500 text-xs" />
+          <span>Arrastra el marcador <span className="text-gray-300">|</span> <FontAwesomeIcon icon={faCrosshairs} className="text-blue-500 text-xs" /> Click para ubicar</span>
         </div>
       </MapContainer>
     </div>
   )
 }
 
-// ====================== COMPONENTE FORMULARIO (CORREGIDO) ======================
+// ====================== COMPONENTE FORMULARIO ======================
 
 function FormularioEscuela({ 
   escuela, 
   onSave, 
   onCancel,
   posicion,
-  setPosicion,
-  modoEdicion,
-  setModoEdicion
+  setPosicion
 }: {
   escuela: Escuela | null
   onSave: (data: Partial<Escuela>) => void
   onCancel: () => void
   posicion: { lat: number; lng: number } | null
   setPosicion: (pos: { lat: number; lng: number } | null) => void
-  modoEdicion: boolean
-  setModoEdicion: (modo: boolean) => void
 }) {
   const [formData, setFormData] = useState<Partial<Escuela>>({
     nombre: '',
@@ -197,6 +213,8 @@ function FormularioEscuela({
     matricula: null,
     cct: '',
   })
+  const [lat, setLat] = useState<string>('')
+  const [lng, setLng] = useState<string>('')
 
   useEffect(() => {
     if (escuela) {
@@ -211,6 +229,8 @@ function FormularioEscuela({
       })
       if (escuela.latitude && escuela.longitude) {
         setPosicion({ lat: escuela.latitude, lng: escuela.longitude })
+        setLat(escuela.latitude.toString())
+        setLng(escuela.longitude.toString())
       }
     } else {
       setFormData({
@@ -222,8 +242,21 @@ function FormularioEscuela({
         matricula: null,
         cct: '',
       })
+      setPosicion(null)
+      setLat('')
+      setLng('')
     }
   }, [escuela, setPosicion])
+
+  function handleCoordenadasChange(lat: string, lng: string) {
+    setLat(lat)
+    setLng(lng)
+    const latNum = parseFloat(lat)
+    const lngNum = parseFloat(lng)
+    if (!isNaN(latNum) && !isNaN(lngNum)) {
+      setPosicion({ lat: latNum, lng: lngNum })
+    }
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -246,7 +279,7 @@ function FormularioEscuela({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden max-h-[90vh] overflow-y-auto">
+    <div className="bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden max-h-[95vh] overflow-y-auto">
       <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between sticky top-0 bg-gray-50 z-10">
         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <FontAwesomeIcon icon={faSchool} className="text-blue-600" />
@@ -342,33 +375,60 @@ function FormularioEscuela({
           </div>
         </div>
 
-        {/* Selector de ubicación */}
+        {/* Ubicación */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="block text-sm font-medium text-gray-700">
               Ubicación en el mapa *
             </label>
-            <button
-              type="button"
-              onClick={() => setModoEdicion(!modoEdicion)}
-              className={`text-xs px-3 py-1 rounded-full transition-colors ${
-                modoEdicion 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {modoEdicion ? 'Edición activa' : 'Activar edición'}
-            </button>
+            <span className="text-xs text-blue-600 flex items-center gap-1">
+              <FontAwesomeIcon icon={faArrowsUpDown} className="text-xs" />
+              Arrastra el marcador
+            </span>
           </div>
-          <SelectorUbicacion 
+          
+          <MapaConArrastre 
             posicion={posicion} 
             setPosicion={setPosicion}
-            modoEdicion={modoEdicion}
+            setCoordenadas={(lat, lng) => {
+              setLat(lat.toString())
+              setLng(lng.toString())
+            }}
           />
+          
+          {/* Campos de coordenadas editables */}
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                <FontAwesomeIcon icon={faGlobe} className="text-gray-400 mr-1" />
+                Latitud
+              </label>
+              <input
+                type="text"
+                value={lat}
+                onChange={(e) => handleCoordenadasChange(e.target.value, lng)}
+                placeholder="Ej: 19.666611"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                <FontAwesomeIcon icon={faGlobe} className="text-gray-400 mr-1" />
+                Longitud
+              </label>
+              <input
+                type="text"
+                value={lng}
+                onChange={(e) => handleCoordenadasChange(lat, e.target.value)}
+                placeholder="Ej: -100.142917"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
+              />
+            </div>
+          </div>
           {posicion && (
-            <div className="mt-2 text-xs text-gray-500 flex items-center gap-2">
-              <FontAwesomeIcon icon={faLocationDot} className="text-blue-500" />
-              Coordenadas: {posicion.lat.toFixed(6)}, {posicion.lng.toFixed(6)}
+            <div className="mt-2 text-xs text-green-600 flex items-center gap-2">
+              <FontAwesomeIcon icon={faMapPin} />
+              Ubicación seleccionada: {posicion.lat.toFixed(6)}, {posicion.lng.toFixed(6)}
             </div>
           )}
         </div>
@@ -403,7 +463,6 @@ export default function AdminEscuelas() {
   const [escuelaSeleccionada, setEscuelaSeleccionada] = useState<Escuela | null>(null)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [posicion, setPosicion] = useState<{ lat: number; lng: number } | null>(null)
-  const [modoEdicion, setModoEdicion] = useState(false)
   const [busqueda, setBusqueda] = useState('')
 
   useEffect(() => {
@@ -431,7 +490,6 @@ export default function AdminEscuelas() {
   async function guardarEscuela(data: Partial<Escuela>) {
     try {
       if (escuelaSeleccionada) {
-        // Editar
         const { error } = await supabase
           .from('instituciones')
           .update(data)
@@ -440,7 +498,6 @@ export default function AdminEscuelas() {
         if (error) throw error
         alert('Escuela actualizada correctamente')
       } else {
-        // Crear
         const { error } = await supabase
           .from('instituciones')
           .insert([data])
@@ -479,21 +536,18 @@ export default function AdminEscuelas() {
     setEscuelaSeleccionada(escuela)
     setPosicion(escuela.latitude && escuela.longitude ? { lat: escuela.latitude, lng: escuela.longitude } : null)
     setMostrarFormulario(true)
-    setModoEdicion(true)
   }
 
   function nuevaEscuela() {
     setEscuelaSeleccionada(null)
     setPosicion(null)
     setMostrarFormulario(true)
-    setModoEdicion(true)
   }
 
   function cancelarFormulario() {
     setEscuelaSeleccionada(null)
     setPosicion(null)
     setMostrarFormulario(false)
-    setModoEdicion(false)
   }
 
   const escuelasFiltradas = escuelas.filter(e => 
@@ -616,7 +670,7 @@ export default function AdminEscuelas() {
                   {escuela.latitude && escuela.longitude ? (
                     <span className="text-xs text-green-600 flex items-center gap-1">
                       <FontAwesomeIcon icon={faLocationDot} className="text-[10px]" />
-                      Ubicada
+                      {escuela.latitude.toFixed(4)}, {escuela.longitude.toFixed(4)}
                     </span>
                   ) : (
                     <span className="text-xs text-amber-600 flex items-center gap-1">
@@ -642,15 +696,13 @@ export default function AdminEscuelas() {
         {/* Modal de formulario */}
         {mostrarFormulario && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-3 overflow-y-auto">
-            <div className="w-full max-w-3xl max-h-[95vh] overflow-y-auto">
+            <div className="w-full max-w-4xl max-h-[95vh] overflow-y-auto">
               <FormularioEscuela
                 escuela={escuelaSeleccionada}
                 onSave={guardarEscuela}
                 onCancel={cancelarFormulario}
                 posicion={posicion}
                 setPosicion={setPosicion}
-                modoEdicion={modoEdicion}
-                setModoEdicion={setModoEdicion}
               />
             </div>
           </div>
