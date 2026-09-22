@@ -1,17 +1,39 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const inter = Inter({
+const inter = localFont({
+  src: [
+    {
+      path: "./fonts/Inter-Variable.ttf",
+      style: "normal",
+      weight: "100 900",
+    },
+    {
+      path: "./fonts/Inter-Italic-Variable.ttf",
+      style: "italic",
+      weight: "100 900",
+    },
+  ],
   variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
 });
 
-const jetbrains = JetBrains_Mono({
+const jetbrainsMono = localFont({
+  src: [
+    {
+      path: "./fonts/JetBrainsMono-Variable.ttf",
+      style: "normal",
+      weight: "100 900",
+    },
+    {
+      path: "./fonts/JetBrainsMono-Italic-Variable.ttf",
+      style: "italic",
+      weight: "100 900",
+    },
+  ],
   variable: "--font-jetbrains",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -28,7 +50,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${inter.variable} ${jetbrains.variable} h-full antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>
