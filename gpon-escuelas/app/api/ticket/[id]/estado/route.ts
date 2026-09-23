@@ -1,9 +1,6 @@
-// app/api/ticket/[id]/estado/route.js
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { getSupabaseServer } from '@/lib/supabaseServer'
 
-// Estados permitidos
 const ESTADOS_VALIDOS = [
   'abierto',
   'en_revision',
@@ -12,9 +9,12 @@ const ESTADOS_VALIDOS = [
   'en_proceso',
   'resuelto',
   'cancelado',
-]
+] as const
 
-export async function PUT(request, { params }) {
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const { id } = await params
     const ticketId = parseInt(id, 10)
@@ -22,30 +22,15 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: 'ID inválido' }, { status: 400 })
     }
 
-    const cookieStore = await cookies()
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
-            })
-          },
-        },
-      }
-    )
+    const supabase = await getSupabaseServer()
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    // Verificar rol
     const { data: perfil } = await supabase
       .from('profiles')
       .select('role')
@@ -63,14 +48,10 @@ export async function PUT(request, { params }) {
     const { estado, cuadrilla, comentario } = body
 
     if (!estado || !ESTADOS_VALIDOS.includes(estado)) {
-      return NextResponse.json(
-        { error: 'Estado inválido.' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Estado inválido.' }, { status: 400 })
     }
 
-    // Preparar actualización
-    const update = { estado }
+    const update: Record<string, unknown> = { estado }
 
     if (cuadrilla !== undefined) {
       update.cuadrilla = cuadrilla || null
@@ -92,7 +73,6 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: errUpd.message }, { status: 400 })
     }
 
-    // Si viene un comentario junto con el cambio, lo registramos
     if (comentario && comentario.trim() !== '') {
       await supabase.from('ticket_comentarios').insert({
         ticket_id: ticketId,
@@ -103,7 +83,6 @@ export async function PUT(request, { params }) {
       })
     }
 
-    // Comentario automático del cambio de estado
     await supabase.from('ticket_comentarios').insert({
       ticket_id: ticketId,
       autor_id: user.id,
@@ -114,7 +93,8 @@ export async function PUT(request, { params }) {
 
     return NextResponse.json({ ok: true, ticket: ticketActual })
   } catch (err) {
+    const message = err instanceof Error ? err.message : 'Error interno'
     console.error('[api/ticket estado] Error:', err)
-    return NextResponse.json({ error: err.message || 'Error interno' }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -1,12 +1,9 @@
-// app/api/aprobar-solicitud/route.js
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { getSupabaseServer } from '@/lib/supabaseServer'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { enviarCredenciales } from '@/lib/email'
 
-// Genera una contraseña temporal legible
-function generarPasswordTemporal() {
+function generarPasswordTemporal(): string {
   const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
   const numeros = '23456789'
   const simbolos = '!@#$%'
@@ -19,26 +16,9 @@ function generarPasswordTemporal() {
   return pwd
 }
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
-    // 1. Verificar que el usuario logueado es admin
-    const cookieStore = await cookies()
-    const supabaseUser = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
-            })
-          },
-        },
-      }
-    )
+    const supabaseUser = await getSupabaseServer()
 
     const {
       data: { user },
@@ -61,13 +41,13 @@ export async function POST(request) {
       )
     }
 
-    // 2. Leer body
-    const { solicitudId, nota } = await request.json()
+    const body = await request.json()
+    const { solicitudId, nota } = body
+
     if (!solicitudId) {
       return NextResponse.json({ error: 'Falta solicitudId' }, { status: 400 })
     }
 
-    // 3. Obtener la solicitud
     const { data: solicitud, error: errSol } = await supabaseAdmin
       .from('solicitudes')
       .select('*')
@@ -85,7 +65,6 @@ export async function POST(request) {
       )
     }
 
-    // 4. Verificar que el correo no exista ya en Auth
     const { data: usuariosExistentes } = await supabaseAdmin.auth.admin.listUsers()
     const yaExiste = usuariosExistentes?.users?.find(
       (u) => u.email?.toLowerCase() === solicitud.correo.toLowerCase()
@@ -98,7 +77,6 @@ export async function POST(request) {
       )
     }
 
-    // 5. Crear usuario en Auth con contraseña temporal
     const passwordTemporal = generarPasswordTemporal()
 
     const { data: authData, error: errAuth } = await supabaseAdmin.auth.admin.createUser({
@@ -121,7 +99,6 @@ export async function POST(request) {
 
     const nuevoUserId = authData.user.id
 
-    // 6. Asegurar que existe el perfil (el trigger debería crearlo, pero por si acaso)
     const { data: perfilExistente } = await supabaseAdmin
       .from('profiles')
       .select('id')
@@ -137,7 +114,6 @@ export async function POST(request) {
       })
     }
 
-    // 7. Buscar o crear la institución
     const cctNormalizado = (solicitud.cct || '').toUpperCase().trim()
 
     const { data: instExistente } = await supabaseAdmin
@@ -146,10 +122,9 @@ export async function POST(request) {
       .eq('cct', cctNormalizado)
       .maybeSingle()
 
-    let institucionId
+    let institucionId: number
 
     if (instExistente) {
-      // Actualizar la fila existente
       const { error: errUpd } = await supabaseAdmin
         .from('instituciones')
         .update({
@@ -165,7 +140,6 @@ export async function POST(request) {
       }
       institucionId = instExistente.id
     } else {
-      // Crear nueva institución
       const { data: instNueva, error: errIns } = await supabaseAdmin
         .from('instituciones')
         .insert({
@@ -192,7 +166,6 @@ export async function POST(request) {
 
       if (errIns) {
         console.error('[aprobar] Error creando institución:', errIns)
-        // Rollback: borrar el usuario que creamos
         await supabaseAdmin.auth.admin.deleteUser(nuevoUserId)
         return NextResponse.json(
           { error: 'Error al crear la institución: ' + errIns.message },
@@ -202,7 +175,6 @@ export async function POST(request) {
       institucionId = instNueva.id
     }
 
-    // 8. Actualizar la solicitud
     await supabaseAdmin
       .from('solicitudes')
       .update({
@@ -215,7 +187,6 @@ export async function POST(request) {
       })
       .eq('id', solicitudId)
 
-    // 9. Enviar correo (no bloqueante)
     try {
       await enviarCredenciales({
         destinatario: solicitud.correo,
@@ -225,7 +196,6 @@ export async function POST(request) {
       })
     } catch (errCorreo) {
       console.error('[aprobar] Error enviando correo:', errCorreo)
-      // No revertimos todo por el correo, pero se lo decimos al admin
       return NextResponse.json({
         ok: true,
         aviso:
@@ -241,10 +211,8 @@ export async function POST(request) {
       institucionId,
     })
   } catch (err) {
+    const message = err instanceof Error ? err.message : 'Error interno'
     console.error('[aprobar] Error general:', err)
-    return NextResponse.json(
-      { error: err.message || 'Error interno' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -1,4 +1,3 @@
-// lib/email.js
 import nodemailer from 'nodemailer'
 
 const gmailUser = process.env.GMAIL_USER
@@ -18,15 +17,19 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-/**
- * Envía un correo con las credenciales de acceso al sistema.
- */
+type EnviarCredencialesParams = {
+  destinatario: string
+  nombreInstitucion: string
+  correoAcceso: string
+  passwordTemporal: string
+}
+
 export async function enviarCredenciales({
   destinatario,
   nombreInstitucion,
   correoAcceso,
   passwordTemporal,
-}) {
+}: EnviarCredencialesParams) {
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #f8fafc;">
       <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e2e8f0;">
@@ -35,7 +38,7 @@ export async function enviarCredenciales({
           Hola <strong>${nombreInstitucion}</strong>,
         </p>
         <p style="color: #475569; font-size: 14px; line-height: 1.6;">
-          Tu solicitud fue <strong style="color: #059669;">aprobada</strong>. Ya puedes acceder al sistema de monitoreo con las siguientes credenciales:
+          Tu solicitud fue <strong style="color: #059669;">aprobada</strong>. Ya puedes acceder al sistema con las siguientes credenciales:
         </p>
         <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; margin: 20px 0;">
           <p style="color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 4px 0;">Usuario</p>
@@ -46,9 +49,6 @@ export async function enviarCredenciales({
         <p style="color: #475569; font-size: 14px; line-height: 1.6;">
           Por seguridad, te recomendamos <strong>cambiar tu contraseña</strong> al primer inicio de sesión.
         </p>
-        <a href="http://localhost:3000/login" style="display: inline-block; background: #1848bb; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; margin-top: 8px;">
-          Iniciar sesión
-        </a>
         <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
         <p style="color: #94a3b8; font-size: 11px; line-height: 1.5; margin: 0;">
           Si no solicitaste este acceso, puedes ignorar este correo.<br>
@@ -66,10 +66,17 @@ export async function enviarCredenciales({
   })
 }
 
-/**
- * Envía un correo de rechazo.
- */
-export async function enviarRechazo({ destinatario, nombreInstitucion, motivo }) {
+type EnviarRechazoParams = {
+  destinatario: string
+  nombreInstitucion: string
+  motivo?: string
+}
+
+export async function enviarRechazo({
+  destinatario,
+  nombreInstitucion,
+  motivo,
+}: EnviarRechazoParams) {
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #f8fafc;">
       <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e2e8f0;">

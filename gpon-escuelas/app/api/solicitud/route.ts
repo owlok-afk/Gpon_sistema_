@@ -1,13 +1,7 @@
-// app/api/solicitud/route.js
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-const supabase = createClient(supabaseUrl, anonKey)
-
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const body = await request.json()
 
@@ -34,6 +28,11 @@ export async function POST(request) {
       )
     }
 
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
     const { data, error } = await supabase.rpc('crear_solicitud', {
       p_nombre_institucion: nombre_institucion,
       p_cct: cct,
@@ -56,10 +55,8 @@ export async function POST(request) {
 
     return NextResponse.json({ ok: true, solicitud: data }, { status: 201 })
   } catch (err) {
+    const message = err instanceof Error ? err.message : 'Error interno del servidor'
     console.error('[api/solicitud] Error:', err)
-    return NextResponse.json(
-      { error: err.message || 'Error interno del servidor' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

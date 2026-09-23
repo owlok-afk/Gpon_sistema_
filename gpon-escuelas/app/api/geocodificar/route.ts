@@ -1,20 +1,16 @@
-// app/api/geocodificar/route.js
 import { NextResponse } from 'next/server'
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
-    const { direccion } = await request.json()
+    const body = await request.json()
+    const { direccion } = body
 
     if (!direccion || direccion.trim() === '') {
-      return NextResponse.json(
-        { error: 'La dirección está vacía.' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'La dirección está vacía.' }, { status: 400 })
     }
 
     let query = direccion.trim()
 
-    // Si no menciona México, lo agregamos para mejorar la precisión
     if (!/m[eé]xico/i.test(query)) {
       query += ', México'
     }
@@ -40,15 +36,12 @@ export async function POST(request) {
 
     if (!Array.isArray(data) || data.length === 0) {
       return NextResponse.json(
-        {
-          error:
-            'No se encontró la ubicación. Intenta agregar el municipio o el estado.',
-        },
+        { error: 'No se encontró la ubicación. Intenta agregar el municipio o el estado.' },
         { status: 404 }
       )
     }
 
-    const resultados = data.map((r) => ({
+    const resultados = data.map((r: any) => ({
       lat: parseFloat(r.lat),
       lng: parseFloat(r.lon),
       displayName: r.display_name,
@@ -58,10 +51,8 @@ export async function POST(request) {
 
     return NextResponse.json({ ok: true, resultados })
   } catch (err) {
+    const message = err instanceof Error ? err.message : 'Error interno del servidor'
     console.error('[geocodificar] Error:', err)
-    return NextResponse.json(
-      { error: err.message || 'Error interno del servidor' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

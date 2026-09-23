@@ -1,29 +1,11 @@
-// app/api/rechazar-solicitud/route.js
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { getSupabaseServer } from '@/lib/supabaseServer'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { enviarRechazo } from '@/lib/email'
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies()
-    const supabaseUser = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options)
-            })
-          },
-        },
-      }
-    )
+    const supabaseUser = await getSupabaseServer()
 
     const {
       data: { user },
@@ -46,7 +28,9 @@ export async function POST(request) {
       )
     }
 
-    const { solicitudId, nota } = await request.json()
+    const body = await request.json()
+    const { solicitudId, nota } = body
+
     if (!solicitudId) {
       return NextResponse.json({ error: 'Falta solicitudId' }, { status: 400 })
     }
@@ -78,7 +62,6 @@ export async function POST(request) {
       })
       .eq('id', solicitudId)
 
-    // Correo de rechazo (no bloqueante)
     try {
       await enviarRechazo({
         destinatario: solicitud.correo,
@@ -91,10 +74,8 @@ export async function POST(request) {
 
     return NextResponse.json({ ok: true })
   } catch (err) {
+    const message = err instanceof Error ? err.message : 'Error interno'
     console.error('[rechazar] Error:', err)
-    return NextResponse.json(
-      { error: err.message || 'Error interno' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
