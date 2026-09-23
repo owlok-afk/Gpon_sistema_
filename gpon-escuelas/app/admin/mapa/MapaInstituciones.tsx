@@ -1,11 +1,21 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L, { LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faRoute } from '@fortawesome/free-solid-svg-icons'
+import {
+  faHome,
+  faRoute,
+  faSatellite,
+  faMap,
+  faExpand,
+  faCompress,
+  faCamera,
+  faXmark,
+} from '@fortawesome/free-solid-svg-icons'
+import { StreetViewModal } from '@/app/components/StreetViewModal'
 
 export type EstadoVinculacion = 'no_vinculada' | 'en_proceso' | 'vinculada' | 'rechazada'
 
@@ -26,6 +36,8 @@ type Props = {
   seleccionadaId: number | null
   onSelectDetalle: (inst: InstitucionMapa) => void
 }
+
+type LayerType = 'satellite_hd' | 'satellite' | 'streets'
 
 function crearIcono(color: string) {
   return new L.DivIcon({
@@ -63,13 +75,15 @@ function CentrarEnSeleccionada({
     if (seleccionadaId == null) return
     const inst = instituciones.find((i) => i.id === seleccionadaId)
     if (inst) {
-      map.flyTo([inst.latitude, inst.longitude], 15, { duration: 1 })
+      map.flyTo([inst.latitude, inst.longitude], 17, {
+        duration: 1.2,
+        easeLinearity: 0.25,
+      })
     }
   }, [seleccionadaId, instituciones, map])
   return null
 }
 
-// Fuerza a Leaflet a recalcular tamaño cuando cambia el contenedor
 function InvalidarTamano() {
   const map = useMap()
   useEffect(() => {
@@ -79,16 +93,94 @@ function InvalidarTamano() {
   return null
 }
 
+function MapInstanceCapture({ onReady }: { onReady: (map: L.Map) => void }) {
+  const map = useMap()
+  useEffect(() => {
+    onReady(map)
+  }, [map, onReady])
+  return null
+}
+
+// Captura clics en el mapa cuando el modo Street View está activo
+function MapStreetViewListener({
+  isActive,
+  onSelect,
+}: {
+  isActive: boolean
+  onSelect: (lat: number, lng: number) => void
+}) {
+  useMapEvents({
+    click(e) {
+      if (isActive) {
+        onSelect(e.latlng.lat, e.latlng.lng)
+      }
+    },
+  })
+  return null
+}
+
 export default function MapaInstituciones({
   instituciones,
   seleccionadaId,
   onSelectDetalle,
 }: Props) {
   const mapRef = useRef<L.Map | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [center] = useState<LatLngExpression>([19.95, -99.65])
+  const [layer, setLayer] = useState<LayerType>('satellite_hd')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // Modo Street View: cuando está activo, los clics en el mapa abren el Street View
+  const [isStreetViewActive, setIsStreetViewActive] = useState(false)
+
+  // Datos del modal de Street View
+  const [streetViewData, setStreetViewData] = useState<{
+    isOpen: boolean
+    coordinates: { lat: number; lng: number } | null
+  }>({ isOpen: false, coordinates: null })
+
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', handler)
+    return () => document.removeEventListener('fullscreenchange', handler)
+  }, [])
+
+  // Cambia el cursor del mapa cuando el modo Street View está activo
+  useEffect(() => {
+    if (!mapRef.current) return
+    const container = mapRef.current.getContainer()
+    if (isStreetViewActive) {
+      container.style.cursor = 'crosshair'
+    } else {
+      container.style.cursor = ''
+    }
+  }, [isStreetViewActive])
+
+  function toggleFullscreen() {
+    if (!containerRef.current) return
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        console.error('Error al entrar en pantalla completa:', err)
+      })
+    } else {
+      document.exitFullscreen()
+    }
+  }
+
+  function handleStreetViewSelect(lat: number, lng: number) {
+    setStreetViewData({
+      isOpen: true,
+      coordinates: { lat, lng },
+    })
+    setIsStreetViewActive(false)
+  }
 
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: 500 }} className="relative rounded-2xl overflow-hidden border border-slate-200 bg-[#f8fafc]">
+    <div
+      ref={containerRef}
+      style={{ width: '100%', height: '100%', minHeight: 500 }}
+      className="relative rounded-2xl overflow-hidden border border-slate-200 bg-[#f8fafc]"
+    >
       <MapContainer
         center={center}
         zoom={10}
@@ -97,21 +189,51 @@ export default function MapaInstituciones({
         ref={mapRef}
         className="z-0"
       >
-        {/* Capa satelital con relieve (Esri World Imagery) */}
-<TileLayer
-  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-  attribution='&copy; Esri, Maxar, Earthstar Geographics'
-  maxZoom={19}
-/>
-{/* Capa de nombres de calles y lugares encima */}
-<TileLayer
-  url="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-  attribution='&copy; Esri'
-  maxZoom={19}
-/>
+        {/* ======================= */}
+        {/* CAPAS CARTOGRÁFICAS     */}
+        {/* ======================= */}
 
+        {layer === 'satellite_hd' && (
+          <TileLayer
+            url="https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+            subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+            attribution='&copy; Google Maps'
+            maxZoom={21}
+          />
+        )}
+
+        {layer === 'satellite' && (
+          <>
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution='&copy; Esri, Maxar, Earthstar Geographics'
+              maxZoom={19}
+            />
+            <TileLayer
+              url="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+              attribution='&copy; Esri'
+              maxZoom={19}
+            />
+          </>
+        )}
+
+        {layer === 'streets' && (
+          <TileLayer
+            url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            maxZoom={19}
+          />
+        )}
+
+        <MapInstanceCapture onReady={(m) => { mapRef.current = m }} />
         <InvalidarTamano />
         <CentrarEnSeleccionada instituciones={instituciones} seleccionadaId={seleccionadaId} />
+
+        {/* Listener para clics en el mapa (solo cuando modo Street View está activo) */}
+        <MapStreetViewListener
+          isActive={isStreetViewActive}
+          onSelect={handleStreetViewSelect}
+        />
 
         {instituciones.map((inst) => (
           <Marker
@@ -176,30 +298,127 @@ export default function MapaInstituciones({
           </Marker>
         ))}
 
-        <div className="absolute bottom-4 right-4 z-[1000] flex flex-col gap-2">
+        {/* ============================================ */}
+        {/* PANEL DE CONTROLES FLOTANTES                  */}
+        {/* ============================================ */}
+        <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
+
+          {/* Selector de capa */}
+          <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden flex">
+            <button
+              type="button"
+              onClick={() => setLayer('satellite_hd')}
+              className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                layer === 'satellite_hd'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-700 hover:bg-slate-100'
+              }`}
+              title="Satélite HD"
+            >
+              <FontAwesomeIcon icon={faSatellite} className="text-[11px]" />
+              HD
+            </button>
+            <div className="w-px bg-slate-200" />
+            <button
+              type="button"
+              onClick={() => setLayer('satellite')}
+              className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                layer === 'satellite'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-700 hover:bg-slate-100'
+              }`}
+              title="Satélite Esri"
+            >
+              <FontAwesomeIcon icon={faSatellite} className="text-[11px]" />
+              Satélite
+            </button>
+            <div className="w-px bg-slate-200" />
+            <button
+              type="button"
+              onClick={() => setLayer('streets')}
+              className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                layer === 'streets'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-700 hover:bg-slate-100'
+              }`}
+              title="Calles"
+            >
+              <FontAwesomeIcon icon={faMap} className="text-[11px]" />
+              Calles
+            </button>
+          </div>
+
+          {/* Botón de modo Street View */}
           <button
             type="button"
-            onClick={() => mapRef.current?.zoomIn()}
-            className="bg-white w-9 h-9 rounded-full shadow-md hover:bg-gray-50 flex items-center justify-center border border-gray-200 text-lg font-bold"
+            onClick={() => setIsStreetViewActive((v) => !v)}
+            className={`h-10 px-3 rounded-lg shadow-md border flex items-center gap-2 text-[11px] font-bold transition-colors ${
+              isStreetViewActive
+                ? 'bg-amber-500 border-amber-600 text-slate-950 animate-pulse'
+                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+            }`}
+            title="Activar modo Street View: luego haz click en el mapa"
           >
-            +
+            <FontAwesomeIcon icon={faCamera} className="text-sm" />
+            {isStreetViewActive ? 'Cancelar' : 'Street View'}
           </button>
-          <button
-            type="button"
-            onClick={() => mapRef.current?.zoomOut()}
-            className="bg-white w-9 h-9 rounded-full shadow-md hover:bg-gray-50 flex items-center justify-center border border-gray-200 text-lg font-bold"
-          >
-            −
-          </button>
-          <button
-            type="button"
-            onClick={() => mapRef.current?.setView([19.95, -99.65], 10)}
-            className="bg-blue-600 w-9 h-9 rounded-full shadow-md hover:bg-blue-700 flex items-center justify-center text-white border border-blue-700"
-          >
-            <FontAwesomeIcon icon={faHome} className="text-xs" />
-          </button>
+
+          {/* Zoom + Home + Fullscreen */}
+          <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden flex flex-col">
+            <button
+              type="button"
+              onClick={() => mapRef.current?.zoomIn()}
+              className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+              title="Acercar"
+            >
+              <span className="text-lg font-light leading-none">+</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => mapRef.current?.zoomOut()}
+              className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+              title="Alejar"
+            >
+              <span className="text-lg font-light leading-none">−</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => mapRef.current?.setView([19.95, -99.65], 10)}
+              className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+              title="Centrar en la región"
+            >
+              <FontAwesomeIcon icon={faHome} className="text-sm" />
+            </button>
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors"
+              title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+            >
+              <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} className="text-sm" />
+            </button>
+          </div>
         </div>
 
+        {/* ============================================ */}
+        {/* AVISO FLOTANTE cuando Street View está ON    */}
+        {/* ============================================ */}
+        {isStreetViewActive && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] bg-amber-500 text-slate-950 px-4 py-2 rounded-full shadow-lg border border-amber-600 flex items-center gap-3 text-xs font-bold">
+            <FontAwesomeIcon icon={faCamera} className="text-sm" />
+            <span>Haz click en cualquier parte del mapa para abrir Street View</span>
+            <button
+              type="button"
+              onClick={() => setIsStreetViewActive(false)}
+              className="bg-slate-950 text-white w-5 h-5 rounded-full flex items-center justify-center hover:bg-slate-800 transition-colors"
+              title="Cancelar"
+            >
+              <FontAwesomeIcon icon={faXmark} className="text-[10px]" />
+            </button>
+          </div>
+        )}
+
+        {/* Leyenda */}
         <div className="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm px-3 py-2 rounded-xl shadow border border-slate-200">
           <p className="text-[10px] font-bold text-slate-700 mb-1.5">Estado</p>
           <div className="space-y-1 text-[10px]">
@@ -222,6 +441,21 @@ export default function MapaInstituciones({
           </div>
         </div>
       </MapContainer>
+
+      {/* ============================================ */}
+      {/* MODAL DE STREET VIEW                          */}
+      {/* ============================================ */}
+      <StreetViewModal
+        isOpen={streetViewData.isOpen}
+        onClose={() => setStreetViewData({ isOpen: false, coordinates: null })}
+        coordinates={streetViewData.coordinates}
+        title="Inspección Street View 360°"
+        subtitle={
+          streetViewData.coordinates
+            ? `${streetViewData.coordinates.lat.toFixed(6)}, ${streetViewData.coordinates.lng.toFixed(6)}`
+            : undefined
+        }
+      />
     </div>
   )
 }

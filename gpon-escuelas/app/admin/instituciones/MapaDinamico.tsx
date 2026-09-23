@@ -14,6 +14,10 @@ import {
   faSpinner,
   faLink,
   faCrosshairs,
+  faSatellite,
+  faMap,
+  faExpand,
+  faCompress,
 } from '@fortawesome/free-solid-svg-icons'
 
 if (typeof window !== 'undefined') {
@@ -41,6 +45,8 @@ type ResultadoGeo = {
   importancia: number
 }
 
+type LayerType = 'satellite_hd' | 'satellite' | 'streets'
+
 export default function MapaDinamico({
   posicion,
   setPosicion,
@@ -49,14 +55,15 @@ export default function MapaDinamico({
   municipio,
 }: Props) {
   const mapRef = useRef<L.Map | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const markerRef = useRef<L.Marker | null>(null)
   const [center, setCenter] = useState<LatLngExpression>([19.95, -99.65])
+  const [layer, setLayer] = useState<LayerType>('satellite_hd')
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
-  // Campos de entrada
   const [terminoBusqueda, setTerminoBusqueda] = useState('')
   const [linkMaps, setLinkMaps] = useState('')
 
-  // Estados
   const [buscandoPorDireccion, setBuscandoPorDireccion] = useState(false)
   const [extrayendoLink, setExtrayendoLink] = useState(false)
   const [resultados, setResultados] = useState<ResultadoGeo[] | null>(null)
@@ -79,9 +86,23 @@ export default function MapaDinamico({
     }
   }, [direccion, municipio, terminoBusqueda])
 
-  // ============================================================
-  // BÚSQUEDA POR DIRECCIÓN (Nominatim)
-  // ============================================================
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', handler)
+    return () => document.removeEventListener('fullscreenchange', handler)
+  }, [])
+
+  function toggleFullscreen() {
+    if (!containerRef.current) return
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        console.error('Error al entrar en pantalla completa:', err)
+      })
+    } else {
+      document.exitFullscreen()
+    }
+  }
+
   async function buscarPorDireccion() {
     setErrorMsg(null)
     setExitoMsg(null)
@@ -119,9 +140,6 @@ export default function MapaDinamico({
     }
   }
 
-  // ============================================================
-  // EXTRAER COORDENADAS DE UN LINK DE GOOGLE MAPS
-  // ============================================================
   async function extraerDeLink() {
     setErrorMsg(null)
     setExitoMsg(null)
@@ -220,9 +238,7 @@ export default function MapaDinamico({
 
   return (
     <div className="space-y-3">
-      {/* ============================================ */}
-      {/* OPCIÓN 1: Pegar link de Google Maps */}
-      {/* ============================================ */}
+      {/* OPCIÓN 1: Link de Google Maps */}
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
         <label className="block text-[11px] font-semibold text-emerald-900 mb-1.5 flex items-center gap-1.5">
           <FontAwesomeIcon icon={faLink} className="text-emerald-600" />
@@ -266,9 +282,7 @@ export default function MapaDinamico({
         </div>
       </div>
 
-      {/* ============================================ */}
       {/* OPCIÓN 2: Buscar por dirección */}
-      {/* ============================================ */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
         <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
           <FontAwesomeIcon icon={faSearch} className="text-slate-500" />
@@ -358,10 +372,11 @@ export default function MapaDinamico({
         </div>
       )}
 
-      {/* ============================================ */}
-      {/* MAPA (satelital con relieve) */}
-      {/* ============================================ */}
-      <div className="relative w-full h-[400px] rounded-xl overflow-hidden border-2 border-slate-300">
+      {/* Mapa */}
+      <div
+        ref={containerRef}
+        className="relative w-full h-[450px] rounded-xl overflow-hidden border-2 border-slate-300"
+      >
         <MapContainer
           center={center}
           zoom={posicion ? 16 : 10}
@@ -370,45 +385,130 @@ export default function MapaDinamico({
           ref={mapRef}
           className="z-0"
         >
-          {/* Capa satelital con relieve (Esri World Imagery) */}
-          <TileLayer
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            attribution='&copy; Esri, Maxar, Earthstar Geographics'
-            maxZoom={19}
-          />
-          {/* Capa de nombres de calles y lugares encima (para que se vean los textos) */}
-          <TileLayer
-            url="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-            attribution='&copy; Esri'
-            maxZoom={19}
-          />
+          {/* CAPAS */}
+          {layer === 'satellite_hd' && (
+            <TileLayer
+              url="https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+              subdomains={['mt0', 'mt1', 'mt2', 'mt3']}
+              attribution='&copy; Google Maps'
+              maxZoom={21}
+            />
+          )}
+
+          {layer === 'satellite' && (
+            <>
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                attribution='&copy; Esri, Maxar, Earthstar Geographics'
+                maxZoom={19}
+              />
+              <TileLayer
+                url="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                attribution='&copy; Esri'
+                maxZoom={19}
+              />
+            </>
+          )}
+
+          {layer === 'streets' && (
+            <TileLayer
+              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              maxZoom={19}
+            />
+          )}
+
           <MapEvents />
           <DraggableMarker />
 
-          <div className="absolute bottom-4 right-4 z-[1000] flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => mapRef.current?.zoomIn()}
-              className="bg-white w-9 h-9 rounded-full shadow-md hover:bg-gray-50 flex items-center justify-center border border-gray-200 text-lg font-bold"
-            >
-              +
-            </button>
-            <button
-              type="button"
-              onClick={() => mapRef.current?.zoomOut()}
-              className="bg-white w-9 h-9 rounded-full shadow-md hover:bg-gray-50 flex items-center justify-center border border-gray-200 text-lg font-bold"
-            >
-              −
-            </button>
-            <button
-              type="button"
-              onClick={() => mapRef.current?.setView([19.95, -99.65], 10)}
-              className="bg-blue-600 w-9 h-9 rounded-full shadow-md hover:bg-blue-700 flex items-center justify-center text-white border border-blue-700"
-            >
-              <FontAwesomeIcon icon={faHome} className="text-xs" />
-            </button>
+          {/* ============================================ */}
+          {/* PANEL DE CONTROLES FLOTANTES                  */}
+          {/* ============================================ */}
+          <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
+
+            {/* Selector de capa */}
+            <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden flex">
+              <button
+                type="button"
+                onClick={() => setLayer('satellite_hd')}
+                className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                  layer === 'satellite_hd'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-700 hover:bg-slate-100'
+                }`}
+                title="Satélite HD"
+              >
+                <FontAwesomeIcon icon={faSatellite} className="text-[11px]" />
+                HD
+              </button>
+              <div className="w-px bg-slate-200" />
+              <button
+                type="button"
+                onClick={() => setLayer('satellite')}
+                className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                  layer === 'satellite'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-700 hover:bg-slate-100'
+                }`}
+                title="Satélite Esri"
+              >
+                <FontAwesomeIcon icon={faSatellite} className="text-[11px]" />
+                Satélite
+              </button>
+              <div className="w-px bg-slate-200" />
+              <button
+                type="button"
+                onClick={() => setLayer('streets')}
+                className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                  layer === 'streets'
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-700 hover:bg-slate-100'
+                }`}
+                title="Calles"
+              >
+                <FontAwesomeIcon icon={faMap} className="text-[11px]" />
+                Calles
+              </button>
+            </div>
+
+            {/* Zoom + Home + Fullscreen */}
+            <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden flex flex-col">
+              <button
+                type="button"
+                onClick={() => mapRef.current?.zoomIn()}
+                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+                title="Acercar"
+              >
+                <span className="text-lg font-light leading-none">+</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => mapRef.current?.zoomOut()}
+                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+                title="Alejar"
+              >
+                <span className="text-lg font-light leading-none">−</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => mapRef.current?.setView([19.95, -99.65], 10)}
+                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+                title="Centrar en la región"
+              >
+                <FontAwesomeIcon icon={faHome} className="text-sm" />
+              </button>
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors"
+                title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
+              >
+                <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} className="text-sm" />
+              </button>
+            </div>
           </div>
 
+          {/* Instrucciones */}
           <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow text-xs text-gray-600 flex items-center gap-2">
             <FontAwesomeIcon icon={faMapPin} className="text-blue-500 text-[10px]" />
             <span>Click en el mapa o arrastra el marcador</span>
