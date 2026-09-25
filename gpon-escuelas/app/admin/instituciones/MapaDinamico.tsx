@@ -21,7 +21,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 if (typeof window !== 'undefined') {
-  delete (L.Icon.Default.prototype as any)._getIconUrl
+  delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
   L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -133,8 +133,9 @@ export default function MapaDinamico({
       }
 
       setResultados(encontrados)
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Error al buscar la ubicación')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al buscar la ubicación'
+      setErrorMsg(message)
     } finally {
       setBuscandoPorDireccion(false)
     }
@@ -169,8 +170,9 @@ export default function MapaDinamico({
       }
       setLinkMaps('')
       setExitoMsg(`Coordenadas aplicadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`)
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Error al procesar el link')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al procesar el link'
+      setErrorMsg(message)
     } finally {
       setExtrayendoLink(false)
     }
@@ -238,14 +240,13 @@ export default function MapaDinamico({
 
   return (
     <div className="space-y-3">
-      {/* OPCIÓN 1: Link de Google Maps */}
       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
         <label className="block text-[11px] font-semibold text-emerald-900 mb-1.5 flex items-center gap-1.5">
           <FontAwesomeIcon icon={faLink} className="text-emerald-600" />
           Opción 1: Pegar link de Google Maps (recomendado)
         </label>
         <p className="text-[10px] text-emerald-700 mb-2">
-          Abre Google Maps, busca la escuela, toca "Compartir" → "Copiar vínculo" y pégalo aquí.
+          Abre Google Maps, busca la escuela, toca Compartir y Copiar vínculo, luego pégalo aquí.
         </p>
         <div className="flex gap-2">
           <input
@@ -282,7 +283,6 @@ export default function MapaDinamico({
         </div>
       </div>
 
-      {/* OPCIÓN 2: Buscar por dirección */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
         <label className="block text-[11px] font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
           <FontAwesomeIcon icon={faSearch} className="text-slate-500" />
@@ -323,7 +323,6 @@ export default function MapaDinamico({
         </div>
       </div>
 
-      {/* Mensajes */}
       {errorMsg && (
         <div className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 flex items-start gap-2">
           <FontAwesomeIcon icon={faExclamationTriangle} className="mt-0.5 text-red-500" />
@@ -338,7 +337,6 @@ export default function MapaDinamico({
         </div>
       )}
 
-      {/* Lista de resultados */}
       {resultados && resultados.length > 1 && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
           <p className="text-xs font-semibold text-amber-800 mb-2">
@@ -372,7 +370,6 @@ export default function MapaDinamico({
         </div>
       )}
 
-      {/* Mapa */}
       <div
         ref={containerRef}
         className="relative w-full h-[450px] rounded-xl overflow-hidden border-2 border-slate-300"
@@ -385,7 +382,6 @@ export default function MapaDinamico({
           ref={mapRef}
           className="z-0"
         >
-          {/* CAPAS */}
           {layer === 'satellite_hd' && (
             <TileLayer
               url="https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
@@ -421,12 +417,7 @@ export default function MapaDinamico({
           <MapEvents />
           <DraggableMarker />
 
-          {/* ============================================ */}
-          {/* PANEL DE CONTROLES FLOTANTES                  */}
-          {/* ============================================ */}
           <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
-
-            {/* Selector de capa */}
             <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden flex">
               <button
                 type="button"
@@ -471,7 +462,6 @@ export default function MapaDinamico({
               </button>
             </div>
 
-            {/* Zoom + Home + Fullscreen */}
             <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden flex flex-col">
               <button
                 type="button"
@@ -508,7 +498,6 @@ export default function MapaDinamico({
             </div>
           </div>
 
-          {/* Instrucciones */}
           <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow text-xs text-gray-600 flex items-center gap-2">
             <FontAwesomeIcon icon={faMapPin} className="text-blue-500 text-[10px]" />
             <span>Click en el mapa o arrastra el marcador</span>

@@ -2,8 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabase'
+import AdminSidebar from '@/components/admin/AdminSidebar'
+import AdminHeader from '@/components/admin/AdminHeader'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -18,6 +21,7 @@ import {
   faXmarkCircle,
   faInfoCircle,
   faArrowLeft,
+  faPlus,
 } from '@fortawesome/free-solid-svg-icons'
 
 type EstadoVinculacion = 'no_vinculada' | 'en_proceso' | 'vinculada' | 'rechazada'
@@ -114,6 +118,7 @@ export default function AdminMapa() {
   const [filtroEstado, setFiltroEstado] = useState<EstadoVinculacion | 'todas'>('todas')
   const [seleccionadaId, setSeleccionadaId] = useState<number | null>(null)
   const [detalle, setDetalle] = useState<Institucion | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     cargar()
@@ -224,179 +229,88 @@ export default function AdminMapa() {
   }
 
   return (
-    <div className="h-full font-sans text-slate-800 bg-[#f8fafc] antialiased flex selection:bg-sky-100 selection:text-sky-900">
+    <div className="min-h-screen flex font-sans text-slate-800 dark:text-slate-100 bg-[#f8fafc] dark:bg-slate-900 antialiased selection:bg-sky-100 selection:text-sky-900">
       {/* SIDEBAR */}
-      <aside className="flex flex-col justify-between h-screen w-64 fixed left-0 top-0 z-50 bg-white border-r border-slate-200 select-none text-slate-600">
-        <div className="flex flex-col overflow-y-auto">
-          <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-100 bg-white">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/80 p-1 flex items-center justify-center shadow-sm flex-shrink-0">
-              <div className="w-full h-full rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-xs">
-                G
-              </div>
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
-                GPON Telecom
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium tracking-wide">
-                S.A. DE C.V.
-              </span>
-            </div>
-          </div>
-
-          <nav className="flex flex-col gap-5 px-3.5 py-4 text-xs">
-            <div className="flex flex-col gap-1">
-              <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                General
-              </span>
-              <a
-                href="/admin"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                Panel principal
-              </a>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Administración
-              </span>
-              <a
-                href="/admin/instituciones"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                Instituciones
-              </a>
-              <a
-                href="/admin/mapa"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-sky-50 text-blue-600 font-semibold border border-sky-100 transition-all"
-              >
-                <FontAwesomeIcon icon={faMap} className="w-4 h-4 text-blue-600" />
-                Mapa
-              </a>
-              <a
-                href="/admin/solicitudes"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Solicitudes
-              </a>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Soporte
-              </span>
-              <a
-                href="/admin/tickets"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                </svg>
-                Tickets
-              </a>
-            </div>
-          </nav>
-        </div>
-
-        <div className="p-4 border-t border-slate-100 bg-white flex flex-col gap-3.5">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-sm">
-              {iniciales}
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-semibold text-slate-900 truncate leading-tight">
-                {profile?.full_name || 'Administrador'}
-              </span>
-              <span className="text-[11px] text-slate-500 font-normal capitalize">
-                {profile?.role || 'admin'}
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={cerrarSesion}
-            className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 transition-all"
-          >
-            Cerrar sesión
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar
+        profile={profile}
+        isOpenMobile={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+      />
 
       {/* MAIN */}
-      <div className="flex-1 pl-64 flex flex-col min-h-screen">
-        <header className="h-16 px-8 sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/70 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a
+      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen w-full">
+        <AdminHeader
+          profile={profile}
+          onToggleMobileMenu={() => setMobileMenuOpen(true)}
+          actionButton={
+            <div className="flex items-center gap-2">
+              <Link
+                href="/admin/instituciones"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all shadow-xs"
+              >
+                <FontAwesomeIcon icon={faTable} className="text-slate-500 text-[10px]" />
+                <span className="hidden sm:inline">Vista tabla</span>
+              </Link>
+              <Link
+                href="/admin/instituciones?nueva=1"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white active:scale-[0.99] transition-all shadow-sm"
+              >
+                <FontAwesomeIcon icon={faPlus} className="text-xs" />
+                <span>Añadir Escuela</span>
+              </Link>
+            </div>
+          }
+        >
+          <div className="flex items-center gap-2 text-xs">
+            <Link
               href="/admin/instituciones"
-              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800"
+              className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium transition-colors"
             >
               <FontAwesomeIcon icon={faArrowLeft} className="text-[10px]" />
               Instituciones
-            </a>
-            <span className="text-slate-300">/</span>
-            <span className="text-xs font-semibold text-slate-800">Mapa</span>
+            </Link>
+            <span className="text-slate-300 dark:text-slate-600">/</span>
+            <span className="font-semibold text-slate-900 dark:text-white">Mapa Satelital</span>
           </div>
-
-          <div className="flex items-center gap-2.5">
-            <a
-              href="/admin/instituciones"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all"
-            >
-              <FontAwesomeIcon icon={faTable} className="text-slate-500 text-[10px]" />
-              Vista tabla
-            </a>
-            <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-semibold text-xs text-slate-700">
-              {iniciales}
-            </div>
-          </div>
-        </header>
+        </AdminHeader>
 
         <main className="p-6 max-w-full w-full flex flex-col gap-5">
           <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-              <div className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Total</div>
-              <div className="text-xl font-bold text-slate-900">{conteos.total}</div>
-              <div className="text-[10px] text-slate-500">En el padrón</div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 shadow-sm">
+              <div className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase mb-1">Total</div>
+              <div className="text-xl font-bold text-slate-900 dark:text-white">{conteos.total}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">En el padrón</div>
             </div>
-            <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-              <div className="text-[10px] font-semibold text-slate-400 uppercase mb-1">Ubicadas</div>
-              <div className="text-xl font-bold text-sky-700">{conteos.conUbicacion}</div>
-              <div className="text-[10px] text-slate-500">Con coordenadas</div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 shadow-sm">
+              <div className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase mb-1">Ubicadas</div>
+              <div className="text-xl font-bold text-sky-700 dark:text-sky-300">{conteos.conUbicacion}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Con coordenadas</div>
             </div>
-            <div className="bg-white rounded-xl border border-emerald-200 p-3 shadow-sm">
-              <div className="text-[10px] font-semibold text-emerald-600 uppercase mb-1">Vinculadas</div>
-              <div className="text-xl font-bold text-emerald-700">{conteos.vinculada}</div>
-              <div className="text-[10px] text-slate-500">En línea</div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-emerald-200 dark:border-emerald-800 p-3 shadow-sm">
+              <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase mb-1">Vinculadas</div>
+              <div className="text-xl font-bold text-emerald-700 dark:text-emerald-300">{conteos.vinculada}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">En línea</div>
             </div>
-            <div className="bg-white rounded-xl border border-amber-200 p-3 shadow-sm">
-              <div className="text-[10px] font-semibold text-amber-600 uppercase mb-1">En proceso</div>
-              <div className="text-xl font-bold text-amber-700">{conteos.en_proceso}</div>
-              <div className="text-[10px] text-slate-500">Pendientes</div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-amber-200 dark:border-amber-800 p-3 shadow-sm">
+              <div className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 uppercase mb-1">En proceso</div>
+              <div className="text-xl font-bold text-amber-700 dark:text-amber-300">{conteos.en_proceso}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Pendientes</div>
             </div>
-            <div className="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-              <div className="text-[10px] font-semibold text-slate-500 uppercase mb-1">Sin vincular</div>
-              <div className="text-xl font-bold text-slate-700">{conteos.no_vinculada}</div>
-              <div className="text-[10px] text-slate-500">Sin cuenta</div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-3 shadow-sm">
+              <div className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase mb-1">Sin vincular</div>
+              <div className="text-xl font-bold text-slate-700 dark:text-slate-300">{conteos.no_vinculada}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Sin cuenta</div>
             </div>
-            <div className="bg-white rounded-xl border border-rose-200 p-3 shadow-sm">
-              <div className="text-[10px] font-semibold text-rose-600 uppercase mb-1">Rechazadas</div>
-              <div className="text-xl font-bold text-rose-700">{conteos.rechazada}</div>
-              <div className="text-[10px] text-slate-500">Cerradas</div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-rose-200 dark:border-rose-800 p-3 shadow-sm">
+              <div className="text-[10px] font-semibold text-rose-600 dark:text-rose-400 uppercase mb-1">Rechazadas</div>
+              <div className="text-xl font-bold text-rose-700 dark:text-rose-300">{conteos.rechazada}</div>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400">Cerradas</div>
             </div>
           </section>
 
           <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-4">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden h-[500px] lg:h-[calc(100vh-280px)]">
-              <div className="p-4 border-b border-slate-100">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[500px] lg:h-[calc(100vh-280px)]">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-700">
                 <div className="relative">
                   <FontAwesomeIcon
                     icon={faSearch}
@@ -407,7 +321,7 @@ export default function AdminMapa() {
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
                     placeholder="Buscar por nombre, CCT o domicilio..."
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-blue-400 transition-all"
+                    className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-700 focus:ring-1 focus:ring-blue-400 transition-all"
                   />
                 </div>
 

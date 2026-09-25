@@ -1,114 +1,86 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useMemo, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-
+import AdminSidebar from '@/components/admin/AdminSidebar'
+import AdminHeader from '@/components/admin/AdminHeader'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
+  faBuilding,
   faPlus,
-  faSchool,
   faEdit,
   faTrash,
-  faSave,
-  faTimes,
-  faMapPin,
-  faGlobe,
-  faInfoCircle,
-  faHourglassHalf,
-  faCheckCircle,
-  faXmarkCircle,
-  faDownload,
-  faMap,
   faSearch,
+  faLocationDot,
+  faUser,
+  faPhone,
+  faEnvelope,
+  faCheckCircle,
+  faHourglassHalf,
+  faXmarkCircle,
+  faInfoCircle,
+  faTimes,
+  faMap,
+  faRoute,
+  faFilter,
+  faSchool,
 } from '@fortawesome/free-solid-svg-icons'
+import type { Profile, Institucion, EstadoVinculacion } from '@/types'
 
-const MapaConArrastre = dynamic(() => import('./MapaDinamico'), {
+// Dynamic import para MapaDinamico (Leaflet no soporta SSR)
+const MapaDinamico = dynamic(() => import('./MapaDinamico'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[420px] rounded-xl border-2 border-slate-300 bg-slate-50 flex items-center justify-center">
+    <div className="w-full h-80 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
       <div className="text-center">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-        <p className="text-xs text-slate-500">Cargando mapa...</p>
+        <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Cargando mapa...</p>
       </div>
     </div>
   ),
 })
 
-type EstadoVinculacion = 'no_vinculada' | 'en_proceso' | 'vinculada' | 'rechazada'
-
-type Institucion = {
-  id: number
-  nombre: string
-  domicilio: string | null
-  director: string | null
-  telefono: string | null
-  correo: string | null
-  matricula: number | null
-  cct: string | null
-  latitude: number | null
-  longitude: number | null
-  año_ejecucion: number | null
-  presidente_asociacion: string | null
-  telefono_asociacion: string | null
-  ciclo_escolar: string | null
-  zona_escolar: string | null
-  turno: string | null
-  profile_id: string | null
-  estado_vinculacion: EstadoVinculacion
-  notas: string | null
-  created_at: string
-}
-
-type Profile = {
-  id: string
-  email: string
-  full_name: string | null
-  role: 'admin' | 'tecnico' | 'escuela'
-}
-
-// ============================================================
-// CHIP DE ESTADO
-// ============================================================
 function ChipEstado({ estado }: { estado: EstadoVinculacion }) {
   const config: Record<
     EstadoVinculacion,
     { label: string; bg: string; text: string; border: string; icon: any }
   > = {
-    no_vinculada: {
-      label: 'No vinculada',
-      bg: 'bg-slate-50',
-      text: 'text-slate-600',
-      border: 'border-slate-200',
-      icon: faInfoCircle,
+    vinculada: {
+      label: 'Vinculada',
+      bg: 'bg-emerald-50 dark:bg-emerald-950/40',
+      text: 'text-emerald-700 dark:text-emerald-300',
+      border: 'border-emerald-200 dark:border-emerald-800',
+      icon: faCheckCircle,
     },
     en_proceso: {
       label: 'En proceso',
-      bg: 'bg-amber-50',
-      text: 'text-amber-700',
-      border: 'border-amber-100',
+      bg: 'bg-amber-50 dark:bg-amber-950/40',
+      text: 'text-amber-700 dark:text-amber-300',
+      border: 'border-amber-200 dark:border-amber-800',
       icon: faHourglassHalf,
     },
-    vinculada: {
-      label: 'Vinculada',
-      bg: 'bg-emerald-50',
-      text: 'text-emerald-600',
-      border: 'border-emerald-100',
-      icon: faCheckCircle,
+    no_vinculada: {
+      label: 'No vinculada',
+      bg: 'bg-slate-100 dark:bg-slate-700/60',
+      text: 'text-slate-600 dark:text-slate-300',
+      border: 'border-slate-200 dark:border-slate-600',
+      icon: faInfoCircle,
     },
     rechazada: {
       label: 'Rechazada',
-      bg: 'bg-rose-50',
-      text: 'text-rose-700',
-      border: 'border-rose-100',
+      bg: 'bg-rose-50 dark:bg-rose-950/40',
+      text: 'text-rose-700 dark:text-rose-300',
+      border: 'border-rose-200 dark:border-rose-800',
       icon: faXmarkCircle,
     },
   }
-  const c = config[estado]
+  const c = config[estado] || config.no_vinculada
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${c.bg} ${c.text} ${c.border}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${c.bg} ${c.text} ${c.border}`}
     >
       <FontAwesomeIcon icon={c.icon} className="text-[9px]" />
       {c.label}
@@ -116,444 +88,52 @@ function ChipEstado({ estado }: { estado: EstadoVinculacion }) {
   )
 }
 
-// ============================================================
-// FORMULARIO
-// ============================================================
-function FormularioInstitucion({
-  institucion,
-  onSave,
-  onCancel,
-  posicion,
-  setPosicion,
-  puedeCambiarEstado,
-}: {
-  institucion: Institucion | null
-  onSave: (data: Partial<Institucion>) => void
-  onCancel: () => void
-  posicion: { lat: number; lng: number } | null
-  setPosicion: (pos: { lat: number; lng: number } | null) => void
-  puedeCambiarEstado: boolean
-}) {
-  const [formData, setFormData] = useState<Partial<Institucion>>({
-    nombre: '',
-    domicilio: '',
-    director: '',
-    telefono: '',
-    correo: '',
-    matricula: null,
-    cct: '',
-    año_ejecucion: 2026,
-    presidente_asociacion: '',
-    telefono_asociacion: '',
-    ciclo_escolar: '',
-    zona_escolar: '',
-    turno: '',
-    estado_vinculacion: 'no_vinculada',
-    notas: '',
-  })
-  const [lat, setLat] = useState<string>('')
-  const [lng, setLng] = useState<string>('')
-  const [guardando, setGuardando] = useState(false)
-
-  useEffect(() => {
-    if (institucion) {
-      setFormData({
-        nombre: institucion.nombre || '',
-        domicilio: institucion.domicilio || '',
-        director: institucion.director || '',
-        telefono: institucion.telefono || '',
-        correo: institucion.correo || '',
-        matricula: institucion.matricula ?? null,
-        cct: institucion.cct || '',
-        año_ejecucion: institucion.año_ejecucion ?? null,
-        presidente_asociacion: institucion.presidente_asociacion || '',
-        telefono_asociacion: institucion.telefono_asociacion || '',
-        ciclo_escolar: institucion.ciclo_escolar || '',
-        zona_escolar: institucion.zona_escolar || '',
-        turno: institucion.turno || '',
-        estado_vinculacion: institucion.estado_vinculacion || 'no_vinculada',
-        notas: institucion.notas || '',
-      })
-      if (institucion.latitude && institucion.longitude) {
-        setPosicion({ lat: institucion.latitude, lng: institucion.longitude })
-        setLat(institucion.latitude.toString())
-        setLng(institucion.longitude.toString())
-      } else {
-        setPosicion(null)
-        setLat('')
-        setLng('')
-      }
-    } else {
-      setFormData({
-        nombre: '',
-        domicilio: '',
-        director: '',
-        telefono: '',
-        correo: '',
-        matricula: null,
-        cct: '',
-        año_ejecucion: 2026,
-        presidente_asociacion: '',
-        telefono_asociacion: '',
-        ciclo_escolar: '',
-        zona_escolar: '',
-        turno: '',
-        estado_vinculacion: 'no_vinculada',
-        notas: '',
-      })
-      setPosicion(null)
-      setLat('')
-      setLng('')
-    }
-  }, [institucion, setPosicion])
-
-  function handleCoordenadasChange(newLat: string, newLng: string) {
-    setLat(newLat)
-    setLng(newLng)
-    const latNum = parseFloat(newLat)
-    const lngNum = parseFloat(newLng)
-    if (!isNaN(latNum) && !isNaN(lngNum)) {
-      setPosicion({ lat: latNum, lng: lngNum })
-    }
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!formData.nombre) {
-      alert('El nombre es obligatorio')
-      return
-    }
-    setGuardando(true)
-    await onSave({
-      ...formData,
-      latitude: posicion?.lat ?? null,
-      longitude: posicion?.lng ?? null,
-    })
-    setGuardando(false)
-  }
-
-  return (
-    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[95vh] overflow-y-auto">
-      <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between sticky top-0 z-10">
-        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <FontAwesomeIcon icon={faSchool} className="text-blue-600" />
-          {institucion ? 'Editar institución' : 'Nueva institución'}
-        </h2>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="text-slate-400 hover:text-slate-600 transition-colors"
-        >
-          <FontAwesomeIcon icon={faTimes} />
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="p-5 space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="md:col-span-2">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Nombre de la institución *
-            </label>
-            <input
-              type="text"
-              value={formData.nombre || ''}
-              onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">CCT</label>
-            <input
-              type="text"
-              value={formData.cct || ''}
-              onChange={(e) => setFormData({ ...formData, cct: e.target.value.toUpperCase() })}
-              placeholder="15DST0182J"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-mono"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Turno</label>
-            <select
-              value={formData.turno || ''}
-              onChange={(e) => setFormData({ ...formData, turno: e.target.value || null })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            >
-              <option value="">—</option>
-              <option value="MATUTINO">Matutino</option>
-              <option value="VESPERTINO">Vespertino</option>
-              <option value="NOCTURNO">Nocturno</option>
-              <option value="MIXTO">Mixto</option>
-            </select>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Domicilio</label>
-            <input
-              type="text"
-              value={formData.domicilio || ''}
-              onChange={(e) => setFormData({ ...formData, domicilio: e.target.value })}
-              placeholder="Ej: San Francisco de la Loma, San Felipe del Progreso"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Director</label>
-            <input
-              type="text"
-              value={formData.director || ''}
-              onChange={(e) => setFormData({ ...formData, director: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Teléfono</label>
-            <input
-              type="text"
-              value={formData.telefono || ''}
-              onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Correo</label>
-            <input
-              type="email"
-              value={formData.correo || ''}
-              onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Matrícula</label>
-            <input
-              type="number"
-              value={formData.matricula ?? ''}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  matricula: e.target.value ? parseInt(e.target.value) : null,
-                })
-              }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Año de ejecución
-            </label>
-            <input
-              type="number"
-              value={formData.año_ejecucion ?? ''}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  año_ejecucion: e.target.value ? parseInt(e.target.value) : null,
-                })
-              }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Ciclo escolar
-            </label>
-            <input
-              type="text"
-              value={formData.ciclo_escolar || ''}
-              onChange={(e) => setFormData({ ...formData, ciclo_escolar: e.target.value })}
-              placeholder="2025-2026"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Zona escolar / Municipio
-            </label>
-            <input
-              type="text"
-              value={formData.zona_escolar || ''}
-              onChange={(e) => setFormData({ ...formData, zona_escolar: e.target.value })}
-              placeholder="Ej: San Felipe del Progreso"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Presidente de asociación
-            </label>
-            <input
-              type="text"
-              value={formData.presidente_asociacion || ''}
-              onChange={(e) =>
-                setFormData({ ...formData, presidente_asociacion: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Teléfono asociación
-            </label>
-            <input
-              type="text"
-              value={formData.telefono_asociacion || ''}
-              onChange={(e) =>
-                setFormData({ ...formData, telefono_asociacion: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-
-          {puedeCambiarEstado && (
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Estado de vinculación
-              </label>
-              <select
-                value={formData.estado_vinculacion || 'no_vinculada'}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    estado_vinculacion: e.target.value as EstadoVinculacion,
-                  })
-                }
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              >
-                <option value="no_vinculada">No vinculada</option>
-                <option value="en_proceso">En proceso</option>
-                <option value="vinculada">Vinculada</option>
-                <option value="rechazada">Rechazada</option>
-              </select>
-            </div>
-          )}
-
-          <div className="md:col-span-2">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Notas</label>
-            <textarea
-              value={formData.notas || ''}
-              onChange={(e) => setFormData({ ...formData, notas: e.target.value })}
-              rows={2}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Ubicación */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-xs font-semibold text-slate-700">
-              Ubicación en el mapa
-            </label>
-          </div>
-
-          <MapaConArrastre
-            posicion={posicion}
-            setPosicion={setPosicion}
-            setCoordenadas={(lat: number, lng: number) => {
-              setLat(lat.toString())
-              setLng(lng.toString())
-            }}
-            direccion={formData.domicilio || ''}
-            municipio={formData.zona_escolar || ''}
-          />
-
-          <div className="grid grid-cols-2 gap-3 mt-3">
-            <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                <FontAwesomeIcon icon={faGlobe} className="text-slate-400 mr-1" />
-                Latitud
-              </label>
-              <input
-                type="text"
-                value={lat}
-                onChange={(e) => handleCoordenadasChange(e.target.value, lng)}
-                placeholder="19.666611"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs font-mono"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-medium text-slate-600 mb-1">
-                <FontAwesomeIcon icon={faGlobe} className="text-slate-400 mr-1" />
-                Longitud
-              </label>
-              <input
-                type="text"
-                value={lng}
-                onChange={(e) => handleCoordenadasChange(lat, e.target.value)}
-                placeholder="-100.142917"
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs font-mono"
-              />
-            </div>
-          </div>
-
-          {posicion && (
-            <div className="mt-2 text-[11px] text-emerald-600 flex items-center gap-2">
-              <FontAwesomeIcon icon={faMapPin} />
-              Ubicación: {posicion.lat.toFixed(6)}, {posicion.lng.toFixed(6)}
-            </div>
-          )}
-        </div>
-
-        <div className="flex gap-3 pt-4 border-t border-slate-200">
-          <button
-            type="submit"
-            disabled={guardando}
-            className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors flex items-center justify-center gap-2 text-sm font-semibold"
-          >
-            <FontAwesomeIcon icon={faSave} />
-            {guardando ? 'Guardando...' : institucion ? 'Actualizar' : 'Guardar'}
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-semibold"
-          >
-            Cancelar
-          </button>
-        </div>
-      </form>
-    </div>
-  )
-}
-
-// ============================================================
-// PÁGINA PRINCIPAL
-// ============================================================
-export default function AdminInstituciones() {
+function InstitucionesContent() {
   const router = useRouter()
-  const [instituciones, setInstituciones] = useState<Institucion[]>([])
+  const searchParams = useSearchParams()
+
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [instituciones, setInstituciones] = useState<Institucion[]>([])
   const [loading, setLoading] = useState(true)
-  const [seleccionada, setSeleccionada] = useState<Institucion | null>(null)
-  const [mostrarFormulario, setMostrarFormulario] = useState(false)
-  const [posicion, setPosicion] = useState<{ lat: number; lng: number } | null>(null)
-  const [busqueda, setBusqueda] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Filtros
+  const [busqueda, setBusqueda] = useState(searchParams?.get('buscar') || '')
   const [filtroEstado, setFiltroEstado] = useState<EstadoVinculacion | 'todas'>('todas')
-  const [pagina, setPagina] = useState(1)
-  const porPagina = 10
+  const [filtroGPS, setFiltroGPS] = useState<'todas' | 'con_gps' | 'sin_gps'>('todas')
+
+  // Modales
+  const [modalFormulario, setModalFormulario] = useState(false)
+  const [escuelaEditando, setEscuelaEditando] = useState<Institucion | null>(null)
+  const [escuelaEliminando, setEscuelaEliminando] = useState<Institucion | null>(null)
+
+  // Estado del formulario
+  const [formNombre, setFormNombre] = useState('')
+  const [formCCT, setFormCCT] = useState('')
+  const [formDomicilio, setFormDomicilio] = useState('')
+  const [formDirector, setFormDirector] = useState('')
+  const [formTelefono, setFormTelefono] = useState('')
+  const [formCorreo, setFormCorreo] = useState('')
+  const [formEstadoVinculacion, setFormEstadoVinculacion] = useState<EstadoVinculacion>('no_vinculada')
+  const [posicionMapa, setPosicionMapa] = useState<{ lat: number; lng: number } | null>(null)
+  const [errorForm, setErrorForm] = useState<string | null>(null)
 
   useEffect(() => {
-    cargarTodo()
+    cargarDatos()
   }, [])
 
-  async function cargarTodo() {
+  // Si la URL trae ?nueva=1 o ?nuevo=1, abrir modal de creación
+  useEffect(() => {
+    if (searchParams?.get('nueva') === '1' || searchParams?.get('nuevo') === '1') {
+      nuevaEscuela()
+    }
+  }, [searchParams])
+
+  async function cargarDatos() {
     try {
       setLoading(true)
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/login')
         return
@@ -564,7 +144,7 @@ export default function AdminInstituciones() {
         .select('*')
         .eq('id', user.id)
         .single()
-      setProfile(prof)
+      setProfile(prof as Profile)
 
       const { data, error } = await supabase
         .from('instituciones')
@@ -572,631 +152,733 @@ export default function AdminInstituciones() {
         .order('nombre', { ascending: true })
 
       if (error) throw error
-      setInstituciones(data || [])
-    } catch (error) {
-      console.error(error)
-      alert('Error al cargar las instituciones')
+      setInstituciones((data as Institucion[]) || [])
+    } catch (err) {
+      console.error('Error cargando instituciones:', err)
     } finally {
       setLoading(false)
     }
   }
 
-  async function guardar(data: Partial<Institucion>) {
-    try {
-      if (seleccionada) {
-        const { error } = await supabase
-          .from('instituciones')
-          .update(data)
-          .eq('id', seleccionada.id)
-        if (error) throw error
-      } else {
-        const { error } = await supabase.from('instituciones').insert([data])
-        if (error) throw error
-      }
-      await cargarTodo()
-      cerrarFormulario()
-    } catch (error: any) {
-      console.error(error)
-      alert('Error al guardar: ' + (error.message || 'desconocido'))
-    }
+  function nuevaEscuela() {
+    setEscuelaEditando(null)
+    setFormNombre('')
+    setFormCCT('')
+    setFormDomicilio('')
+    setFormDirector('')
+    setFormTelefono('')
+    setFormCorreo('')
+    setFormEstadoVinculacion('no_vinculada')
+    setPosicionMapa(null)
+    setErrorForm(null)
+    setModalFormulario(true)
   }
 
-  async function eliminar(id: number) {
-    if (!confirm('¿Eliminar esta institución? Esta acción no se puede deshacer.')) return
-    try {
-      const { error } = await supabase.from('instituciones').delete().eq('id', id)
-      if (error) throw error
-      await cargarTodo()
-    } catch (error) {
-      console.error(error)
-      alert('Error al eliminar')
-    }
-  }
-
-  function editar(inst: Institucion) {
-    setSeleccionada(inst)
-    setPosicion(
-      inst.latitude && inst.longitude ? { lat: inst.latitude, lng: inst.longitude } : null
+  function editarEscuela(inst: Institucion) {
+    setEscuelaEditando(inst)
+    setFormNombre(inst.nombre || '')
+    setFormCCT(inst.cct || '')
+    setFormDomicilio(inst.domicilio || '')
+    setFormDirector(inst.director || '')
+    setFormTelefono(inst.telefono || '')
+    setFormCorreo(inst.correo || '')
+    setFormEstadoVinculacion(inst.estado_vinculacion || 'no_vinculada')
+    setPosicionMapa(
+      inst.latitude && inst.longitude
+        ? { lat: inst.latitude, lng: inst.longitude }
+        : null
     )
-    setMostrarFormulario(true)
+    setErrorForm(null)
+    setModalFormulario(true)
   }
 
-  function nueva() {
-    setSeleccionada(null)
-    setPosicion(null)
-    setMostrarFormulario(true)
+  async function handleGuardarEscuela(e: React.FormEvent) {
+    e.preventDefault()
+    setErrorForm(null)
+
+    if (!formNombre.trim()) {
+      setErrorForm('El nombre de la institución es obligatorio.')
+      return
+    }
+
+    setGuardando(true)
+
+    try {
+      const payload: Partial<Institucion> = {
+        nombre: formNombre.trim(),
+        cct: formCCT.trim().toUpperCase() || null,
+        domicilio: formDomicilio.trim() || null,
+        director: formDirector.trim() || null,
+        telefono: formTelefono.trim() || null,
+        correo: formCorreo.trim().toLowerCase() || null,
+        estado_vinculacion: formEstadoVinculacion,
+        latitude: posicionMapa?.lat ?? null,
+        longitude: posicionMapa?.lng ?? null,
+        updated_at: new Date().toISOString(),
+      }
+
+      if (escuelaEditando) {
+        const { data, error } = await supabase
+          .from('instituciones')
+          .update(payload)
+          .eq('id', escuelaEditando.id)
+          .select()
+          .single()
+
+        if (error) throw error
+        setInstituciones((prev) =>
+          prev.map((i) => (i.id === escuelaEditando.id ? (data as Institucion) : i))
+        )
+      } else {
+        const { data, error } = await supabase
+          .from('instituciones')
+          .insert([payload])
+          .select()
+          .single()
+
+        if (error) throw error
+        setInstituciones((prev) => [data as Institucion, ...prev])
+      }
+
+      setModalFormulario(false)
+    } catch (err: unknown) {
+      setErrorForm(err instanceof Error ? err.message : 'Error al guardar la escuela')
+    } finally {
+      setGuardando(false)
+    }
   }
 
-  function cerrarFormulario() {
-    setSeleccionada(null)
-    setPosicion(null)
-    setMostrarFormulario(false)
+  async function confirmarEliminar() {
+    if (!escuelaEliminando) return
+    setGuardando(true)
+
+    try {
+      const { error } = await supabase
+        .from('instituciones')
+        .delete()
+        .eq('id', escuelaEliminando.id)
+
+      if (error) throw error
+
+      setInstituciones((prev) => prev.filter((i) => i.id !== escuelaEliminando.id))
+      setEscuelaEliminando(null)
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Error al eliminar institución')
+    } finally {
+      setGuardando(false)
+    }
   }
 
-  async function cerrarSesion() {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
+  // KPIs
+  const conteos = useMemo(() => {
+    return {
+      total: instituciones.length,
+      vinculadas: instituciones.filter((i) => i.estado_vinculacion === 'vinculada').length,
+      enProceso: instituciones.filter((i) => i.estado_vinculacion === 'en_proceso').length,
+      noVinculadas: instituciones.filter((i) => i.estado_vinculacion === 'no_vinculada').length,
+      conGPS: instituciones.filter((i) => i.latitude !== null && i.longitude !== null).length,
+      sinGPS: instituciones.filter((i) => i.latitude === null || i.longitude === null).length,
+    }
+  }, [instituciones])
 
-  const iniciales = (profile?.full_name || profile?.email || 'AD')
-    .split(' ')
-    .map((s) => s[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-
-  const puedeCambiarEstado = profile?.role === 'admin' || profile?.role === 'tecnico'
-
+  // Filtrado
   const filtradas = useMemo(() => {
     return instituciones.filter((i) => {
-      const q = busqueda.toLowerCase()
-      const coincide =
+      const q = busqueda.trim().toLowerCase()
+      const coincideBusqueda =
+        !q ||
         i.nombre.toLowerCase().includes(q) ||
-        (i.domicilio && i.domicilio.toLowerCase().includes(q)) ||
         (i.cct && i.cct.toLowerCase().includes(q)) ||
+        (i.domicilio && i.domicilio.toLowerCase().includes(q)) ||
         (i.director && i.director.toLowerCase().includes(q))
-      const estadoOk = filtroEstado === 'todas' || i.estado_vinculacion === filtroEstado
-      return coincide && estadoOk
+
+      const coincideEstado = filtroEstado === 'todas' || i.estado_vinculacion === filtroEstado
+
+      const coincideGPS =
+        filtroGPS === 'todas' ||
+        (filtroGPS === 'con_gps' && i.latitude !== null && i.longitude !== null) ||
+        (filtroGPS === 'sin_gps' && (i.latitude === null || i.longitude === null))
+
+      return coincideBusqueda && coincideEstado && coincideGPS
     })
-  }, [instituciones, busqueda, filtroEstado])
-
-  const totalPaginas = Math.max(1, Math.ceil(filtradas.length / porPagina))
-  const paginaActual = Math.min(pagina, totalPaginas)
-  const inicio = (paginaActual - 1) * porPagina
-  const paginadas = filtradas.slice(inicio, inicio + porPagina)
-
-  useEffect(() => {
-    setPagina(1)
-  }, [busqueda, filtroEstado])
-
-  const conteos = {
-    todas: instituciones.length,
-    no_vinculada: instituciones.filter((i) => i.estado_vinculacion === 'no_vinculada').length,
-    en_proceso: instituciones.filter((i) => i.estado_vinculacion === 'en_proceso').length,
-    vinculada: instituciones.filter((i) => i.estado_vinculacion === 'vinculada').length,
-    rechazada: instituciones.filter((i) => i.estado_vinculacion === 'rechazada').length,
-  }
-
-  const conUbicacion = instituciones.filter((i) => i.latitude && i.longitude).length
+  }, [instituciones, busqueda, filtroEstado, filtroGPS])
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f8fafc]">
+      <div className="flex items-center justify-center min-h-screen bg-[#f8fafc] dark:bg-slate-900">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p className="text-slate-500 text-sm">Cargando instituciones...</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Cargando padrón escolar...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-full font-sans text-slate-800 bg-[#f8fafc] antialiased flex selection:bg-sky-100 selection:text-sky-900">
+    <div className="min-h-screen flex font-sans text-slate-800 dark:text-slate-100 bg-[#f8fafc] dark:bg-slate-900 antialiased selection:bg-sky-100 selection:text-sky-900">
+      {/* SIDEBAR UNIFICADO */}
+      <AdminSidebar
+        profile={profile}
+        isOpenMobile={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+      />
 
-      {/* SIDEBAR */}
-      <aside className="flex flex-col justify-between h-screen w-64 fixed left-0 top-0 z-50 bg-white border-r border-slate-200 select-none text-slate-600">
-        <div className="flex flex-col overflow-y-auto">
-          <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-100 bg-white">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/80 p-1 flex items-center justify-center shadow-sm flex-shrink-0">
-              <div className="w-full h-full rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-xs">
-                G
-              </div>
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
-                GPON Telecom
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium tracking-wide">
-                S.A. DE C.V.
-              </span>
-            </div>
-          </div>
-
-          <nav className="flex flex-col gap-5 px-3.5 py-4 text-xs">
-            <div className="flex flex-col gap-1">
-              <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                General
-              </span>
-              <a
-                href="/admin"
-                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <span className="flex items-center gap-2.5">
-                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  </svg>
-                  Panel principal
-                </span>
-              </a>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Administración
-              </span>
-              <a
-                href="/admin/instituciones"
-                className="flex items-center justify-between px-3 py-2 rounded-xl bg-sky-50 text-blue-600 font-semibold border border-sky-100 transition-all"
-              >
-                <span className="flex items-center gap-2.5">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  Instituciones
-                </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sky-100 text-sky-800">
-                  {conteos.todas}
-                </span>
-              </a>
-              <a
+      {/* CONTENEDOR PRINCIPAL */}
+      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen w-full">
+        {/* HEADER UNIFICADO */}
+        <AdminHeader
+          profile={profile}
+          searchValue={busqueda}
+          onSearchChange={setBusqueda}
+          searchPlaceholder="Buscar por nombre, CCT o localidad..."
+          onToggleMobileMenu={() => setMobileMenuOpen(true)}
+          actionButton={
+            <div className="flex items-center gap-2">
+              <Link
                 href="/admin/mapa"
-                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
+                className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all shadow-xs"
               >
-                <span className="flex items-center gap-2.5">
-                  <FontAwesomeIcon icon={faMap} className="w-4 h-4 text-slate-400" />
-                  Mapa
-                </span>
-              </a>
-              <a
-                href="/admin/solicitudes"
-                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <span className="flex items-center gap-2.5">
-                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Solicitudes
-                </span>
-              </a>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Soporte
-              </span>
-              <a
-                href="/admin/tickets"
-                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <span className="flex items-center gap-2.5">
-                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                  </svg>
-                  Tickets
-                </span>
-              </a>
-            </div>
-          </nav>
-        </div>
-
-        <div className="p-4 border-t border-slate-100 bg-white flex flex-col gap-3.5">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-sm">
-              {iniciales}
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-semibold text-slate-900 truncate leading-tight">
-                {profile?.full_name || 'Administrador General'}
-              </span>
-              <span className="text-[11px] text-slate-500 font-normal capitalize">
-                {profile?.role || 'admin'}
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={cerrarSesion}
-            className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 transition-all"
-          >
-            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Cerrar sesión
-          </button>
-        </div>
-      </aside>
-
-      {/* MAIN */}
-      <div className="flex-1 pl-64 flex flex-col min-h-screen">
-        <header className="h-16 px-8 sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/70 flex items-center justify-between">
-          <div className="flex items-center w-full max-w-md">
-            <div className="relative w-full">
-              <input
-                type="search"
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Buscar por nombre, CCT o domicilio..."
-                className="w-full pl-3.5 pr-14 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-all"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={nueva}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 active:scale-[0.99] transition-all shadow-sm"
-            >
-              + Nueva institución
-            </button>
-            <div className="h-5 w-px bg-slate-200 mx-1"></div>
-            <div className="flex items-center gap-2.5 pl-1">
-              <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-semibold text-xs text-slate-700">
-                {iniciales}
-              </div>
-              <div className="hidden md:flex flex-col text-left">
-                <span className="text-xs font-semibold text-slate-900 leading-tight">
-                  {profile?.full_name || 'Administrador'}
-                </span>
-                <span className="text-[10px] text-slate-500 font-medium">NOC Central</span>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className="p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight leading-tight">
-                Instituciones Educativas
-              </h1>
-              <p className="text-xs md:text-sm text-slate-500">
-                Padrón y monitoreo operativo de enlaces GPON en planteles educativos de la Zona Norte del Estado de México.
-              </p>
-            </div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <a
-                href="/admin/mapa"
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-sm transition-all"
-              >
-                <FontAwesomeIcon icon={faMap} className="text-blue-600" />
-                Ver Mapa
-              </a>
+                <FontAwesomeIcon icon={faMap} className="text-blue-600 dark:text-blue-400 text-xs" />
+                <span>Ver en mapa</span>
+              </Link>
               <button
-                onClick={() => alert('Función de exportar lista (pendiente)')}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-sm transition-all"
+                onClick={nuevaEscuela}
+                className="px-3.5 md:px-4 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white active:scale-[0.99] transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
               >
-                <FontAwesomeIcon icon={faDownload} className="text-slate-500" />
-                Exportar Listado
+                <FontAwesomeIcon icon={faPlus} className="text-xs" />
+                <span className="hidden sm:inline">Añadir Escuela</span>
+                <span className="sm:hidden">Nueva</span>
               </button>
             </div>
+          }
+        />
+
+        <main className="p-4 md:p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
+          {/* BANNER / TITULO */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200/80 dark:border-slate-800">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                  <FontAwesomeIcon icon={faBuilding} className="text-sm" />
+                </div>
+                <h1 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                  Padrón de Instituciones Educativas
+                </h1>
+              </div>
+              <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">
+                Directorio y control de escuelas registradas para servicio de fibra óptica GPON en el Estado de México.
+              </p>
+            </div>
+
+            <button
+              onClick={nuevaEscuela}
+              className="self-start md:self-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+            >
+              <FontAwesomeIcon icon={faPlus} />
+              + Añadir Nueva Escuela
+            </button>
           </div>
 
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <div className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-sm flex flex-col justify-between gap-3">
+          {/* KPIS */}
+          <section className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 p-4 shadow-sm flex flex-col justify-between gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Total en padrón</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-100">
-                  Registro
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total Escuelas</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                  Padrón
                 </span>
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-900 tracking-tight leading-none mb-1">
-                  {conteos.todas}
+                <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-none mb-1">
+                  {conteos.total}
                 </div>
-                <div className="text-[11px] font-medium text-slate-500">
-                  Planteles registrados
+                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  Registradas en sistema
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-sm flex flex-col justify-between gap-3">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 p-4 shadow-sm flex flex-col justify-between gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Vinculadas</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Vinculadas</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-900">
                   Activas
                 </span>
               </div>
               <div>
-                <div className="text-2xl font-bold text-emerald-700 tracking-tight leading-none mb-1">
-                  {conteos.vinculada}
+                <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 tracking-tight leading-none mb-1">
+                  {conteos.vinculadas}
                 </div>
-                <div className="text-[11px] font-medium text-emerald-700 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  Con cuenta asignada
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-sm flex flex-col justify-between gap-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">En proceso</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-100">
-                  Pendientes
-                </span>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-amber-700 tracking-tight leading-none mb-1">
-                  {conteos.en_proceso}
-                </div>
-                <div className="text-[11px] font-normal text-slate-500">
-                  Solicitudes por aprobar
+                <div className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                  Con servicio GPON activo
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-sm flex flex-col justify-between gap-3">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 p-4 shadow-sm flex flex-col justify-between gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Con ubicación</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                  Georreferenciadas
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">En Proceso</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-900">
+                  Instalación
                 </span>
               </div>
               <div>
-                <div className="text-2xl font-bold text-indigo-700 tracking-tight leading-none mb-1">
-                  {conUbicacion}
+                <div className="text-2xl font-bold text-amber-700 dark:text-amber-300 tracking-tight leading-none mb-1">
+                  {conteos.enProceso}
                 </div>
-                <div className="text-[11px] font-normal text-slate-500">
-                  de {conteos.todas} en el padrón
+                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  En trámite o validación
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 p-4 shadow-sm flex flex-col justify-between gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Con Coordenadas</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-900">
+                  GPS
+                </span>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-sky-700 dark:text-sky-300 tracking-tight leading-none mb-1">
+                  {conteos.conGPS}
+                </div>
+                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                  {conteos.sinGPS} sin ubicar en mapa
                 </div>
               </div>
             </div>
           </section>
 
-          <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 flex flex-col gap-5">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2 overflow-x-auto select-none pb-1">
-                <button
-                  onClick={() => setFiltroEstado('todas')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    filtroEstado === 'todas'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  Todas ({conteos.todas})
-                </button>
-                <button
-                  onClick={() => setFiltroEstado('vinculada')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    filtroEstado === 'vinculada'
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                  }`}
-                >
-                  Vinculadas ({conteos.vinculada})
-                </button>
-                <button
-                  onClick={() => setFiltroEstado('en_proceso')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    filtroEstado === 'en_proceso'
-                      ? 'bg-amber-600 text-white'
-                      : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
-                  }`}
-                >
-                  En proceso ({conteos.en_proceso})
-                </button>
-                <button
-                  onClick={() => setFiltroEstado('no_vinculada')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    filtroEstado === 'no_vinculada'
-                      ? 'bg-slate-600 text-white'
-                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  No vinculadas ({conteos.no_vinculada})
-                </button>
-                <button
-                  onClick={() => setFiltroEstado('rechazada')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    filtroEstado === 'rechazada'
-                      ? 'bg-rose-600 text-white'
-                      : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
-                  }`}
-                >
-                  Rechazadas ({conteos.rechazada})
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono text-slate-400">
-                  {filtradas.length} resultado{filtradas.length !== 1 ? 's' : ''}
-                </span>
-              </div>
+          {/* FILTROS Y CONTROLES */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+            {/* TABS DE ESTADO */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                onClick={() => setFiltroEstado('todas')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  filtroEstado === 'todas'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                }`}
+              >
+                Todas ({conteos.total})
+              </button>
+              <button
+                onClick={() => setFiltroEstado('vinculada')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  filtroEstado === 'vinculada'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                }`}
+              >
+                <FontAwesomeIcon icon={faCheckCircle} className="text-[10px]" />
+                Vinculadas ({conteos.vinculadas})
+              </button>
+              <button
+                onClick={() => setFiltroEstado('en_proceso')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  filtroEstado === 'en_proceso'
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                }`}
+              >
+                <FontAwesomeIcon icon={faHourglassHalf} className="text-[10px]" />
+                En Proceso ({conteos.enProceso})
+              </button>
+              <button
+                onClick={() => setFiltroEstado('no_vinculada')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  filtroEstado === 'no_vinculada'
+                    ? 'bg-slate-600 text-white shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                }`}
+              >
+                <FontAwesomeIcon icon={faInfoCircle} className="text-[10px]" />
+                No Vinculadas ({conteos.noVinculadas})
+              </button>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200/80 rounded-xl">
+            {/* FILTRO GPS */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 dark:text-slate-400">GPS:</span>
+              <select
+                value={filtroGPS}
+                onChange={(e) => setFiltroGPS(e.target.value as 'todas' | 'con_gps' | 'sin_gps')}
+                className="px-3 py-1.5 rounded-xl text-xs bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="todas">Todos los registros</option>
+                <option value="con_gps">Con ubicación GPS ({conteos.conGPS})</option>
+                <option value="sin_gps">Sin coordenadas ({conteos.sinGPS})</option>
+              </select>
+            </div>
+          </div>
+
+          {/* TABLA DE INSTITUCIONES */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-500 font-semibold">
-                  <tr>
-                    <th className="py-3 px-4 font-medium">CCT</th>
-                    <th className="py-3 px-4 font-medium">Nombre de la Institución</th>
-                    <th className="py-3 px-4 font-medium">Domicilio</th>
-                    <th className="py-3 px-4 font-medium">Contacto</th>
-                    <th className="py-3 px-4 font-medium">Estado</th>
-                    <th className="py-3 px-4 font-medium">Ubicación</th>
-                    <th className="py-3 px-4 font-medium text-right">Acciones</th>
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-slate-400 dark:text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+                    <th className="py-3 px-4 md:px-6">Institución / CCT</th>
+                    <th className="py-3 px-4">Ubicación / Domicilio</th>
+                    <th className="py-3 px-4">Estado de Conexión</th>
+                    <th className="py-3 px-4 hidden sm:table-cell">Contacto</th>
+                    <th className="py-3 px-4 hidden md:table-cell">Coordenadas</th>
+                    <th className="py-3 px-4 md:px-6 text-right">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {paginadas.map((inst) => (
-                    <tr key={inst.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-semibold text-sky-800">
-                        {inst.cct ? (
-                          <span className="bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-md">
-                            {inst.cct}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 max-w-[280px]">
-                        <div className="font-semibold text-slate-900 text-xs line-clamp-2">
-                          {inst.nombre}
-                        </div>
-                        {inst.turno && (
-                          <div className="text-[10px] text-slate-400 mt-0.5">
-                            Turno: {inst.turno}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 max-w-[200px]">
-                        {inst.domicilio ? (
-                          <div className="text-slate-700 line-clamp-2">{inst.domicilio}</div>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 max-w-[200px]">
-                        {inst.director && (
-                          <div className="text-slate-800 font-medium truncate">
-                            {inst.director}
-                          </div>
-                        )}
-                        {inst.telefono && (
-                          <div className="text-[11px] text-slate-500 font-mono">
-                            {inst.telefono}
-                          </div>
-                        )}
-                        {!inst.director && !inst.telefono && (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <ChipEstado estado={inst.estado_vinculacion} />
-                      </td>
-                      <td className="py-3.5 px-4">
-                        {inst.latitude && inst.longitude ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-600">
-                            <FontAwesomeIcon icon={faMapPin} className="text-[10px]" />
-                            {inst.latitude.toFixed(4)}, {inst.longitude.toFixed(4)}
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-amber-600">Sin ubicación</span>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => editar(inst)}
-                            className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                            title="Editar"
-                          >
-                            <FontAwesomeIcon icon={faEdit} className="text-xs" />
-                          </button>
-                          <button
-                            onClick={() => eliminar(inst.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                            title="Eliminar"
-                          >
-                            <FontAwesomeIcon icon={faTrash} className="text-xs" />
-                          </button>
-                        </div>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700 text-slate-700 dark:text-slate-300">
+                  {filtradas.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-12 text-center text-slate-400 dark:text-slate-500">
+                        <FontAwesomeIcon icon={faBuilding} className="text-3xl mb-2 opacity-50 block mx-auto" />
+                        No se encontraron instituciones educativas con los filtros seleccionados.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filtradas.map((inst) => (
+                      <tr
+                        key={inst.id}
+                        className="hover:bg-slate-50/80 dark:hover:bg-slate-700/50 transition-colors"
+                      >
+                        {/* INSTITUCION Y CCT */}
+                        <td className="py-3 px-4 md:px-6">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-900 dark:text-white leading-snug">
+                              {inst.nombre}
+                            </span>
+                            <span className="font-mono text-[11px] text-blue-600 dark:text-blue-400">
+                              CCT: {inst.cct || 'Sin registrar'}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* DOMICILIO */}
+                        <td className="py-3 px-4 max-w-xs">
+                          <span className="text-slate-600 dark:text-slate-300 truncate block">
+                            {inst.domicilio || 'Sin domicilio registrado'}
+                          </span>
+                        </td>
+
+                        {/* ESTADO VINCULACION */}
+                        <td className="py-3 px-4">
+                          <ChipEstado estado={inst.estado_vinculacion} />
+                        </td>
+
+                        {/* CONTACTO */}
+                        <td className="py-3 px-4 hidden sm:table-cell">
+                          <div className="flex flex-col text-[11px] text-slate-500 dark:text-slate-400">
+                            {inst.director && (
+                              <span className="truncate max-w-[150px]">
+                                <FontAwesomeIcon icon={faUser} className="text-slate-400 mr-1 text-[10px]" />
+                                {inst.director}
+                              </span>
+                            )}
+                            {inst.telefono && (
+                              <span className="font-mono">
+                                <FontAwesomeIcon icon={faPhone} className="text-slate-400 mr-1 text-[10px]" />
+                                {inst.telefono}
+                              </span>
+                            )}
+                            {!inst.director && !inst.telefono && <span className="text-slate-400">—</span>}
+                          </div>
+                        </td>
+
+                        {/* GPS */}
+                        <td className="py-3 px-4 hidden md:table-cell">
+                          {inst.latitude && inst.longitude ? (
+                            <a
+                              href={`https://www.google.com/maps/dir/?api=1&destination=${inst.latitude},${inst.longitude}&travelmode=driving`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline"
+                              title="Abrir en Google Maps"
+                            >
+                              <FontAwesomeIcon icon={faLocationDot} className="text-[10px]" />
+                              {inst.latitude.toFixed(4)}, {inst.longitude.toFixed(4)}
+                            </a>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400">
+                              <FontAwesomeIcon icon={faLocationDot} className="text-[10px]" />
+                              Sin GPS
+                            </span>
+                          )}
+                        </td>
+
+                        {/* ACCIONES */}
+                        <td className="py-3 px-4 md:px-6 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {inst.latitude && inst.longitude && (
+                              <Link
+                                href={`/admin/mapa`}
+                                className="w-8 h-8 rounded-lg text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 flex items-center justify-center transition-colors"
+                                title="Ver en Mapa GPON"
+                              >
+                                <FontAwesomeIcon icon={faMap} className="text-xs" />
+                              </Link>
+                            )}
+                            <button
+                              onClick={() => editarEscuela(inst)}
+                              className="w-8 h-8 rounded-lg text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 flex items-center justify-center transition-colors cursor-pointer"
+                              title="Editar escuela"
+                            >
+                              <FontAwesomeIcon icon={faEdit} className="text-xs" />
+                            </button>
+                            <button
+                              onClick={() => setEscuelaEliminando(inst)}
+                              className="w-8 h-8 rounded-lg text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center justify-center transition-colors cursor-pointer"
+                              title="Eliminar escuela"
+                            >
+                              <FontAwesomeIcon icon={faTrash} className="text-xs" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-
-              {paginadas.length === 0 && (
-                <div className="text-center py-12 text-slate-500">
-                  <FontAwesomeIcon icon={faSchool} className="text-3xl text-slate-300 mb-2" />
-                  <p className="text-sm font-medium">
-                    {busqueda || filtroEstado !== 'todas'
-                      ? 'No se encontraron instituciones con esos filtros'
-                      : 'No hay instituciones registradas'}
-                  </p>
-                </div>
-              )}
             </div>
-
-            {filtradas.length > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 pt-2">
-                <span className="font-mono text-[11px]">
-                  Mostrando <strong className="text-slate-800">{inicio + 1}</strong>–
-                  <strong className="text-slate-800">
-                    {Math.min(inicio + porPagina, filtradas.length)}
-                  </strong>{' '}
-                  de <strong className="text-slate-800">{filtradas.length}</strong> instituciones
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    disabled={paginaActual === 1}
-                    onClick={() => setPagina((p) => Math.max(1, p - 1))}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs transition-all"
-                  >
-                    Anterior
-                  </button>
-                  {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                    let num
-                    if (totalPaginas <= 5) num = i + 1
-                    else if (paginaActual <= 3) num = i + 1
-                    else if (paginaActual >= totalPaginas - 2)
-                      num = totalPaginas - 4 + i
-                    else num = paginaActual - 2 + i
-                    return (
-                      <button
-                        key={num}
-                        onClick={() => setPagina(num)}
-                        className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
-                          num === paginaActual
-                            ? 'border border-slate-900 bg-slate-900 text-white font-semibold'
-                            : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        {num}
-                      </button>
-                    )
-                  })}
-                  <button
-                    disabled={paginaActual === totalPaginas}
-                    onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs transition-all"
-                  >
-                    Siguiente
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </main>
-
-        <footer className="mt-auto border-t border-slate-200/60 bg-white px-8 py-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-700">GPON Telecom S.A. de C.V.</span>
-            <span>•</span>
-            <span>Sistema de Monitoreo Escolar de Banda Ancha</span>
-          </div>
-          <div className="flex items-center gap-3 font-mono text-[11px] text-slate-400 mt-2 sm:mt-0">
-            <span>v3.4.2-NOC-EDOMEX</span>
-            <span>•</span>
-            <span>Soporte 24/7: 800-4766-NOC</span>
-          </div>
-        </footer>
       </div>
 
-      {mostrarFormulario && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-3 overflow-y-auto">
-          <div className="w-full max-w-3xl my-8">
-            <FormularioInstitucion
-              institucion={seleccionada}
-              onSave={guardar}
-              onCancel={cerrarFormulario}
-              posicion={posicion}
-              setPosicion={setPosicion}
-              puedeCambiarEstado={puedeCambiarEstado}
-            />
+      {/* ============================================================ */}
+      {/* MODAL CREAR / EDITAR ESCUELA */}
+      {/* ============================================================ */}
+      {modalFormulario && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+          <div className="w-full max-w-3xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden my-auto max-h-[95vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 md:p-5 border-b border-slate-100 dark:border-slate-700 flex-shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                  <FontAwesomeIcon icon={faSchool} className="text-xs" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  {escuelaEditando ? 'Editar Institución Educativa' : 'Nueva Institución Educativa'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setModalFormulario(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            </div>
+
+            <form onSubmit={handleGuardarEscuela} className="p-4 md:p-5 overflow-y-auto space-y-4 text-xs">
+              {errorForm && (
+                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300">
+                  {errorForm}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Nombre oficial de la Escuela *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formNombre}
+                    onChange={(e) => setFormNombre(e.target.value)}
+                    placeholder="Ej: Primaria Lic. Benito Juárez"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Clave CCT
+                  </label>
+                  <input
+                    type="text"
+                    value={formCCT}
+                    onChange={(e) => setFormCCT(e.target.value)}
+                    placeholder="15EPR0123A"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-slate-200 uppercase font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Domicilio / Localidad / Municipio
+                  </label>
+                  <input
+                    type="text"
+                    value={formDomicilio}
+                    onChange={(e) => setFormDomicilio(e.target.value)}
+                    placeholder="Calle, número, localidad, municipio..."
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Director / Responsable
+                  </label>
+                  <input
+                    type="text"
+                    value={formDirector}
+                    onChange={(e) => setFormDirector(e.target.value)}
+                    placeholder="Prof. Juan Pérez"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Teléfono
+                  </label>
+                  <input
+                    type="text"
+                    value={formTelefono}
+                    onChange={(e) => setFormTelefono(e.target.value)}
+                    placeholder="712-123-4567"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Correo electrónico
+                  </label>
+                  <input
+                    type="email"
+                    value={formCorreo}
+                    onChange={(e) => setFormCorreo(e.target.value)}
+                    placeholder="escuela@edomex.gob.mx"
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Estado de Vinculación GPON
+                  </label>
+                  <select
+                    value={formEstadoVinculacion}
+                    onChange={(e) => setFormEstadoVinculacion(e.target.value as EstadoVinculacion)}
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    <option value="vinculada">Vinculada (Servicio Activo)</option>
+                    <option value="en_proceso">En Proceso (Instalación)</option>
+                    <option value="no_vinculada">No Vinculada (Padrón)</option>
+                    <option value="rechazada">Rechazada / Cancelada</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* SELECCIÓN EN MAPA */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <FontAwesomeIcon icon={faLocationDot} className="text-blue-600 text-xs" />
+                    Ubicación Satelital / GPS
+                  </span>
+                  {posicionMapa && (
+                    <span className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400">
+                      {posicionMapa.lat.toFixed(5)}, {posicionMapa.lng.toFixed(5)}
+                    </span>
+                  )}
+                </div>
+
+                <div className="h-72 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                  <MapaDinamico
+                    posicion={posicionMapa}
+                    setPosicion={setPosicionMapa}
+                    setCoordenadas={(lat, lng) => setPosicionMapa({ lat, lng })}
+                    direccion={formDomicilio}
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                  Haz clic sobre el mapa para fijar o arrastrar el marcador hacia la institución educativa.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setModalFormulario(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 font-medium cursor-pointer transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={guardando}
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm disabled:opacity-60 transition-colors flex items-center gap-2 cursor-pointer"
+                >
+                  {guardando ? 'Guardando...' : escuelaEditando ? 'Guardar Cambios' : 'Registrar Escuela'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL CONFIRMAR ELIMINACIÓN */}
+      {/* ============================================================ */}
+      {escuelaEliminando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6 flex flex-col gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
+              <FontAwesomeIcon icon={faTrash} className="text-lg" />
+            </div>
+
+            <div className="text-center">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                ¿Eliminar escuela del padrón?
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                ¿Estás seguro de eliminar a{' '}
+                <strong className="text-slate-800 dark:text-slate-200 font-semibold">
+                  {escuelaEliminando.nombre}
+                </strong>
+                ? Esta acción eliminará permanentemente la institución del registro general.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setEscuelaEliminando(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold text-xs transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={guardando}
+                onClick={confirmarEliminar}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-sm disabled:opacity-60 transition-colors cursor-pointer"
+              >
+                {guardando ? 'Eliminando...' : 'Sí, eliminar'}
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
+  )
+}
+
+export default function AdminInstitucionesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen bg-[#f8fafc] dark:bg-slate-900">
+          <div className="text-center">
+            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Cargando...</p>
+          </div>
+        </div>
+      }
+    >
+      <InstitucionesContent />
+    </Suspense>
   )
 }

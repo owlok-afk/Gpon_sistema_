@@ -2,7 +2,10 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import AdminSidebar from '@/components/admin/AdminSidebar'
+import AdminHeader from '@/components/admin/AdminHeader'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -680,6 +683,7 @@ export default function AdminTickets() {
   const [comentarios, setComentarios] = useState<Comentario[]>([])
   const [cargandoComentarios, setCargandoComentarios] = useState(false)
   const [mostrarCrear, setMostrarCrear] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     cargar()
@@ -765,18 +769,6 @@ export default function AdminTickets() {
     }
   }
 
-  async function cerrarSesion() {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
-
-  const iniciales = (profile?.full_name || profile?.email || 'AD')
-    .split(' ')
-    .map((s) => s[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
 
   const puedeEditar = profile?.role === 'admin' || profile?.role === 'tecnico'
 
@@ -817,160 +809,33 @@ export default function AdminTickets() {
   }
 
   return (
-    <div className="h-full font-sans text-slate-800 bg-[#f8fafc] antialiased flex selection:bg-sky-100 selection:text-sky-900">
+    <div className="min-h-screen flex font-sans text-slate-800 dark:text-slate-100 bg-[#f8fafc] dark:bg-slate-900 antialiased selection:bg-sky-100 selection:text-sky-900">
       {/* SIDEBAR */}
-      <aside className="flex flex-col justify-between h-screen w-64 fixed left-0 top-0 z-50 bg-white border-r border-slate-200 select-none text-slate-600">
-        <div className="flex flex-col overflow-y-auto">
-          <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-100 bg-white">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/80 p-1 flex items-center justify-center shadow-sm flex-shrink-0">
-              <div className="w-full h-full rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-xs">
-                G
-              </div>
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
-                GPON Telecom
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium tracking-wide">
-                S.A. DE C.V.
-              </span>
-            </div>
-          </div>
-
-          <nav className="flex flex-col gap-5 px-3.5 py-4 text-xs">
-            <div className="flex flex-col gap-1">
-              <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                General
-              </span>
-              <a
-                href="/admin"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                Panel principal
-              </a>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Administración
-              </span>
-              <a
-                href="/admin/instituciones"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-                Instituciones
-              </a>
-              <a
-                href="/admin/solicitudes"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Solicitudes
-              </a>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Soporte
-              </span>
-              <a
-                href="/admin/tickets"
-                className="flex items-center justify-between px-3 py-2 rounded-xl bg-sky-50 text-blue-600 font-semibold border border-sky-100 transition-all"
-              >
-                <span className="flex items-center gap-2.5">
-                  <FontAwesomeIcon icon={faTicketAlt} className="w-4 h-4 text-blue-600" />
-                  Tickets
-                </span>
-                {conteos.abiertos > 0 && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
-                    {conteos.abiertos}
-                  </span>
-                )}
-              </a>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Sistema
-              </span>
-              <a
-                href="#usuarios"
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
-              >
-                <FontAwesomeIcon icon={faUser} className="w-4 h-4 text-slate-400" />
-                Usuarios
-              </a>
-            </div>
-          </nav>
-        </div>
-
-        <div className="p-4 border-t border-slate-100 bg-white flex flex-col gap-3.5">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0 shadow-sm">
-              {iniciales}
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs font-semibold text-slate-900 truncate leading-tight">
-                {profile?.full_name || 'Administrador'}
-              </span>
-              <span className="text-[11px] text-slate-500 font-normal capitalize">
-                {profile?.role || 'admin'}
-              </span>
-            </div>
-          </div>
-          <button
-            onClick={cerrarSesion}
-            className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 transition-all"
-          >
-            Cerrar sesión
-          </button>
-        </div>
-      </aside>
+      <AdminSidebar
+        ticketsAbiertos={conteos.abiertos}
+        profile={profile}
+        isOpenMobile={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+      />
 
       {/* MAIN */}
-      <div className="flex-1 pl-64 flex flex-col min-h-screen">
-        <header className="h-16 px-8 sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/70 flex items-center justify-between">
-          <div className="flex items-center w-full max-w-md">
-            <div className="relative w-full">
-              <input
-                type="search"
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Buscar por folio, título o cuadrilla..."
-                className="w-full pl-3.5 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs focus:outline-none focus:bg-white focus:ring-1 focus:ring-slate-400 transition-all"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
+      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen w-full">
+        <AdminHeader
+          profile={profile}
+          onToggleMobileMenu={() => setMobileMenuOpen(true)}
+          searchPlaceholder="Buscar por folio, título o cuadrilla..."
+          searchValue={busqueda}
+          onSearchChange={setBusqueda}
+          actionButton={
             <button
               onClick={() => setMostrarCrear(true)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 active:scale-[0.99] transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 dark:bg-slate-100 dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-white active:scale-[0.99] transition-all shadow-sm"
             >
-              + Nueva incidencia
+              <FontAwesomeIcon icon={faPlus} className="text-xs" />
+              <span>Nueva incidencia</span>
             </button>
-            <div className="h-5 w-px bg-slate-200 mx-1"></div>
-            <div className="flex items-center gap-2.5 pl-1">
-              <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-semibold text-xs text-slate-700">
-                {iniciales}
-              </div>
-              <div className="hidden md:flex flex-col text-left">
-                <span className="text-xs font-semibold text-slate-900 leading-tight">
-                  {profile?.full_name || 'Admin'}
-                </span>
-                <span className="text-[10px] text-slate-500 font-medium">NOC Central</span>
-              </div>
-            </div>
-          </div>
-        </header>
+          }
+        />
 
         <main className="p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
           <div className="flex flex-col gap-1">
