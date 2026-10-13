@@ -65,9 +65,9 @@ export default function TecnicoDashboardPage() {
     cargarDatos()
   }, [])
 
-  async function cargarDatos() {
+  async function cargarDatos(silencioso = false) {
     try {
-      setLoading(true)
+      if (!silencioso) setLoading(true)
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -112,7 +112,7 @@ export default function TecnicoDashboardPage() {
     } catch (err) {
       console.error('Error cargando panel técnico:', err)
     } finally {
-      setLoading(false)
+      if (!silencioso) setLoading(false)
     }
   }
 
@@ -570,7 +570,12 @@ export default function TecnicoDashboardPage() {
                           </td>
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              {t.estado !== 'resuelto' && (
+                              {t.estado === 'en_proceso' ? (
+                                <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 inline-flex items-center gap-1.5 shadow-2xs">
+                                  <FontAwesomeIcon icon={faCheckCircle} className="text-[10px] text-emerald-600" />
+                                  <span className="hidden sm:inline">En Sitio (Atendiendo)</span>
+                                </span>
+                              ) : t.estado !== 'resuelto' && t.estado !== 'cancelado' ? (
                                 <button
                                   onClick={() => setModalValidarAcceso(true)}
                                   className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 transition-all shadow-xs inline-flex items-center gap-1 cursor-pointer"
@@ -579,7 +584,7 @@ export default function TecnicoDashboardPage() {
                                   <FontAwesomeIcon icon={faKey} className="text-[10px]" />
                                   <span className="hidden sm:inline">Validar Entrada</span>
                                 </button>
-                              )}
+                              ) : null}
                               <button
                                 onClick={() => abrirModalActualizar(t)}
                                 className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer"
@@ -708,7 +713,7 @@ export default function TecnicoDashboardPage() {
         <ModalValidarAccesoTecnico
           onClose={() => setModalValidarAcceso(false)}
           onValidado={() => {
-            cargarDatos()
+            cargarDatos(true)
           }}
         />
       )}
