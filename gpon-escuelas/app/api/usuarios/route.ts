@@ -27,17 +27,36 @@ export async function GET() {
       )
     }
 
-    const { data: profiles, error } = await supabaseAdmin
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const [profilesRes, instRes] = await Promise.all([
+      supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false }),
+      supabaseAdmin
+        .from('instituciones')
+        .select('id, nombre, cct, domicilio, director, telefono, estado_vinculacion, profile_id')
+        .order('nombre', { ascending: true }),
+    ])
 
-    if (error) {
-      console.error('[usuarios] Error al obtener usuarios:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (profilesRes.error) {
+      console.error('[usuarios] Error al obtener usuarios:', profilesRes.error)
+      return NextResponse.json({ error: profilesRes.error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ ok: true, data: profiles || [] })
+    const instituciones = instRes.data || []
+    const profilesWithInst = (profilesRes.data || []).map((p) => {
+      const inst = instituciones.find((i) => i.profile_id === p.id)
+      return {
+        ...p,
+        institucion: inst || null,
+      }
+    })
+
+    return NextResponse.json({
+      ok: true,
+      data: profilesWithInst,
+      institucionesDisponibles: instituciones,
+    })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Error interno del servidor'
     console.error('[usuarios GET]', err)
@@ -71,7 +90,28 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { email, password, full_name, role, telefono, activo } = body
+    const {
+      email,
+      password,
+      full_name,
+      role,
+      telefono,
+      activo,
+      // Datos específicos de escuela:
+      tipoEscuela, // 'existente' | 'nueva'
+      institucionId,
+      nuevaEscuelaNombre,
+      nuevaEscuelaCCT,
+      nuevaEscuelaDomicilio,
+      nuevaEscuelaDirector,
+      nuevaEscuelaTurno,
+      nuevaEscuelaMatricula,
+      nuevaEscuelaCiclo,
+      nuevaEscuelaTelefono,
+      // Datos específicos de técnico:
+      cuadrilla,
+      especialidad,
+    } = body
 
     if (!email || !email.trim()) {
       return NextResponse.json({ error: 'El correo electrónico es obligatorio.' }, { status: 400 })
@@ -88,6 +128,22 @@ export async function POST(request: Request) {
     const nombreNormalizado = (full_name || '').trim() || correoNormalizado.split('@')[0]
     const rolValido = ['admin', 'tecnico', 'escuela'].includes(role) ? role : 'escuela'
 
+    // Validaciones específicas para escuela
+    if (rolValido === 'escuela') {
+      if (tipoEscuela === 'existente' && !institucionId) {
+        return NextResponse.json(
+          { error: 'Debes seleccionar una institución educativa existente para vincular este usuario.' },
+          { status: 400 }
+        )
+      }
+      if (tipoEscuela === 'nueva' && (!nuevaEscuelaNombre || !nuevaEscuelaCCT)) {
+        return NextResponse.json(
+          { error: 'El nombre de la escuela y la Clave CCT son obligatorios para registrar una nueva institución.' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Verificar si ya existe en auth
     const { data: listData } = await supabaseAdmin.auth.admin.listUsers()
     const yaExiste = listData?.users?.find(
@@ -101,15 +157,22 @@ export async function POST(request: Request) {
       )
     }
 
+    // Metadata según rol
+    const userMeta: Record<string, unknown> = {
+      full_name: nombreNormalizado,
+      role: rolValido,
+    }
+    if (rolValido === 'tecnico' && (cuadrilla || especialidad)) {
+      userMeta.cuadrilla = cuadrilla || null
+      userMeta.especialidad = especialidad || null
+    }
+
     // Crear en Supabase Auth
     const { data: authData, error: errAuth } = await supabaseAdmin.auth.admin.createUser({
       email: correoNormalizado,
       password: password,
       email_confirm: true,
-      user_metadata: {
-        full_name: nombreNormalizado,
-        role: rolValido,
-      },
+      user_metadata: userMeta,
     })
 
     if (errAuth || !authData.user) {
@@ -139,7 +202,6 @@ export async function POST(request: Request) {
 
     if (errProfile) {
       console.error('[usuarios POST] Error creando perfil:', errProfile)
-      // Si falla perfil, intentar limpiar auth user creado
       await supabaseAdmin.auth.admin.deleteUser(nuevoUserId)
       return NextResponse.json(
         { error: 'Error al registrar el perfil del usuario: ' + errProfile.message },
@@ -147,7 +209,58 @@ export async function POST(request: Request) {
       )
     }
 
-    return NextResponse.json({ ok: true, data: nuevoPerfil })
+    // Vinculación / Creación en tabla instituciones si es Escuela
+    let institucionVinculada = null
+    if (rolValido === 'escuela') {
+      if (tipoEscuela === 'existente' && institucionId) {
+        const { data: updInst, error: errUpd } = await supabaseAdmin
+          .from('instituciones')
+          .update({
+            profile_id: nuevoUserId,
+            estado_vinculacion: 'vinculada',
+            fecha_vinculacion: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', institucionId)
+          .select()
+          .single()
+
+        if (!errUpd) {
+          institucionVinculada = updInst
+        }
+      } else if (tipoEscuela === 'nueva' && nuevaEscuelaNombre) {
+        const { data: insInst, error: errIns } = await supabaseAdmin
+          .from('instituciones')
+          .insert({
+            nombre: nuevaEscuelaNombre.trim(),
+            cct: nuevaEscuelaCCT ? nuevaEscuelaCCT.trim().toUpperCase() : null,
+            domicilio: nuevaEscuelaDomicilio ? nuevaEscuelaDomicilio.trim() : null,
+            director: nuevaEscuelaDirector ? nuevaEscuelaDirector.trim() : nombreNormalizado,
+            turno: nuevaEscuelaTurno ? nuevaEscuelaTurno.trim() : null,
+            matricula: nuevaEscuelaMatricula ? parseInt(nuevaEscuelaMatricula) : null,
+            ciclo_escolar: nuevaEscuelaCiclo ? nuevaEscuelaCiclo.trim() : null,
+            telefono: nuevaEscuelaTelefono ? nuevaEscuelaTelefono.trim() : (telefono ? telefono.trim() : null),
+            correo: correoNormalizado,
+            profile_id: nuevoUserId,
+            estado_vinculacion: 'vinculada',
+            fecha_vinculacion: new Date().toISOString(),
+          })
+          .select()
+          .single()
+
+        if (!errIns) {
+          institucionVinculada = insInst
+        }
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      data: {
+        ...nuevoPerfil,
+        institucion: institucionVinculada,
+      },
+    })
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Error interno del servidor'
     console.error('[usuarios POST]', err)

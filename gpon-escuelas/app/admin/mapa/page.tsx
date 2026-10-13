@@ -330,8 +330,8 @@ export default function AdminMapa() {
                     onClick={() => setFiltroEstado('todas')}
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all ${
                       filtroEstado === 'todas'
-                        ? 'bg-slate-900 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        ? 'bg-slate-900 dark:bg-blue-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                   >
                     Todas ({conteos.conUbicacion})
@@ -341,7 +341,7 @@ export default function AdminMapa() {
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all ${
                       filtroEstado === 'vinculada'
                         ? 'bg-emerald-600 text-white'
-                        : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                        : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
                     }`}
                   >
                     Vinculadas ({conteos.vinculada})
@@ -351,7 +351,7 @@ export default function AdminMapa() {
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all ${
                       filtroEstado === 'en_proceso'
                         ? 'bg-amber-600 text-white'
-                        : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                        : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40'
                     }`}
                   >
                     En proceso ({conteos.en_proceso})
@@ -361,7 +361,7 @@ export default function AdminMapa() {
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all ${
                       filtroEstado === 'no_vinculada'
                         ? 'bg-slate-600 text-white'
-                        : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                        : 'bg-slate-50 dark:bg-slate-700/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                     }`}
                   >
                     Sin vinc. ({conteos.no_vinculada})
@@ -371,35 +371,35 @@ export default function AdminMapa() {
 
               <div className="flex-1 overflow-y-auto">
                 {paraMapa.length === 0 ? (
-                  <div className="text-center py-12 px-4 text-slate-500">
-                    <FontAwesomeIcon icon={faLocationDot} className="text-3xl text-slate-300 mb-2" />
+                  <div className="text-center py-12 px-4 text-slate-500 dark:text-slate-400">
+                    <FontAwesomeIcon icon={faLocationDot} className="text-3xl text-slate-300 dark:text-slate-600 mb-2" />
                     <p className="text-xs font-medium">Sin instituciones ubicadas</p>
                     <p className="text-[10px] text-slate-400 mt-1">
                       Ve a Instituciones → Editar → y arrastra el marcador para ubicar.
                     </p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-slate-100 dark:divide-slate-700/60">
                     {paraMapa.map((i) => (
                       <button
                         key={i.id}
                         onClick={() => setSeleccionadaId(i.id)}
-                        className={`w-full text-left p-3 hover:bg-slate-50 transition-colors ${
-                          seleccionadaId === i.id ? 'bg-sky-50 border-l-2 border-sky-500' : ''
+                        className={`w-full text-left p-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${
+                          seleccionadaId === i.id ? 'bg-sky-50 dark:bg-sky-950/40 border-l-2 border-sky-500' : ''
                         }`}
                       >
                         <div className="flex items-start gap-2">
                           <div className="flex-1 min-w-0">
-                            <div className="text-xs font-semibold text-slate-900 leading-snug line-clamp-2">
+                            <div className="text-xs font-semibold text-slate-900 dark:text-white leading-snug line-clamp-2">
                               {i.nombre}
                             </div>
                             {i.cct && (
-                              <div className="text-[10px] font-mono text-sky-700 mt-0.5">
+                              <div className="text-[10px] font-mono text-sky-700 dark:text-sky-300 mt-0.5">
                                 {i.cct}
                               </div>
                             )}
                             {i.domicilio && (
-                              <div className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
+                              <div className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
                                 <FontAwesomeIcon icon={faLocationDot} className="mr-1 text-[9px]" />
                                 {i.domicilio}
                               </div>
@@ -415,12 +415,12 @@ export default function AdminMapa() {
                 )}
               </div>
 
-              <div className="p-3 border-t border-slate-100 text-[10px] text-slate-500 font-mono">
+              <div className="p-3 border-t border-slate-100 dark:border-slate-700 text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                 {paraMapa.length} de {conteos.conUbicacion} ubicadas
               </div>
             </div>
 
-            <div className="h-[500px] lg:h-[calc(100vh-280px)] rounded-2xl overflow-hidden border border-slate-200 bg-white">
+            <div className="h-[500px] lg:h-[calc(100vh-280px)] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
               <MapaInstituciones
                 instituciones={paraMapa}
                 seleccionadaId={seleccionadaId}
@@ -445,26 +445,26 @@ export default function AdminMapa() {
 
       {detalle && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-3 overflow-y-auto">
-          <div className="w-full max-w-md my-8 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-            <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <FontAwesomeIcon icon={faBuilding} className="text-blue-600" />
+          <div className="w-full max-w-md my-8 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <FontAwesomeIcon icon={faBuilding} className="text-blue-600 dark:text-blue-400" />
                 Detalle del plantel
               </h2>
               <button
                 onClick={() => setDetalle(null)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 ✕
               </button>
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <div className="text-sm font-bold text-slate-900 leading-snug mb-1">
+                <div className="text-sm font-bold text-slate-900 dark:text-white leading-snug mb-1">
                   {detalle.nombre}
                 </div>
                 {detalle.cct && (
-                  <div className="font-mono text-[11px] text-sky-800 bg-sky-50 border border-sky-100 inline-block px-2 py-0.5 rounded-md mb-2">
+                  <div className="font-mono text-[11px] text-sky-800 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 border border-sky-100 dark:border-sky-800 inline-block px-2 py-0.5 rounded-md mb-2">
                     {detalle.cct}
                   </div>
                 )}
@@ -477,36 +477,36 @@ export default function AdminMapa() {
                 {detalle.domicilio && (
                   <div className="flex items-start gap-2">
                     <FontAwesomeIcon icon={faLocationDot} className="text-slate-400 mt-0.5" />
-                    <span className="text-slate-700">{detalle.domicilio}</span>
+                    <span className="text-slate-700 dark:text-slate-300">{detalle.domicilio}</span>
                   </div>
                 )}
                 {detalle.director && (
                   <div className="flex items-start gap-2">
                     <span className="text-slate-400 w-4">👤</span>
-                    <span className="text-slate-700">{detalle.director}</span>
+                    <span className="text-slate-700 dark:text-slate-300">{detalle.director}</span>
                   </div>
                 )}
                 {detalle.telefono && (
                   <div className="flex items-start gap-2">
                     <span className="text-slate-400 w-4">📞</span>
-                    <span className="text-slate-700 font-mono">{detalle.telefono}</span>
+                    <span className="text-slate-700 dark:text-slate-300 font-mono">{detalle.telefono}</span>
                   </div>
                 )}
                 {detalle.latitude && detalle.longitude && (
                   <div className="flex items-start gap-2">
                     <FontAwesomeIcon icon={faMap} className="text-slate-400 mt-0.5" />
-                    <span className="text-slate-700 font-mono text-[11px]">
+                    <span className="text-slate-700 dark:text-slate-300 font-mono text-[11px]">
                       {detalle.latitude.toFixed(6)}, {detalle.longitude.toFixed(6)}
                     </span>
                   </div>
                 )}
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex gap-2">
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex gap-2">
                 {detalle.latitude && detalle.longitude && (
                   <button
                     onClick={() => abrirGoogleMaps(detalle.latitude!, detalle.longitude!)}
-                    className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs font-semibold flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs font-semibold flex items-center justify-center gap-2 shadow-sm"
                   >
                     <FontAwesomeIcon icon={faRoute} className="text-xs" />
                     Cómo llegar
@@ -514,7 +514,7 @@ export default function AdminMapa() {
                 )}
                 <a
                   href="/admin/instituciones"
-                  className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-xs font-semibold text-center"
+                  className="flex-1 px-4 py-2 bg-slate-900 dark:bg-blue-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-blue-700 text-xs font-semibold text-center shadow-sm"
                 >
                   Editar en tabla
                 </a>

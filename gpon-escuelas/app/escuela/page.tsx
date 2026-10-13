@@ -26,7 +26,16 @@ import {
   faClock,
   faWrench,
   faTicketAlt,
+  faFileAlt,
+  faPrint,
+  faGraduationCap,
+  faQrcode,
+  faKey,
+  faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons'
+import ModalNuevoReporteUso from '@/components/ModalNuevoReporteUso'
+import ReporteUsoImpresionModal, { ReporteUsoCompleto } from '@/components/ReporteUsoImpresionModal'
+import ModalCodigoAccesoEscuela from '@/components/ModalCodigoAccesoEscuela'
 
 type EstadoVinculacion = 'no_vinculada' | 'en_proceso' | 'vinculada' | 'rechazada'
 type TipoTicket = 'incidencia' | 'mantenimiento'
@@ -114,7 +123,7 @@ function ChipEstadoTicket({ estado }: { estado: EstadoTicket }) {
   const config: Record<EstadoTicket, { label: string; bg: string; text: string; border: string; punto: string }> = {
     abierto: { label: 'Abierto', bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-100', punto: 'bg-amber-500' },
     en_revision: { label: 'En revisión', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-100', punto: 'bg-sky-500' },
-    programado: { label: 'Programado', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-100', punto: 'bg-indigo-500' },
+    programado: { label: 'Programado', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-100', punto: 'bg-sky-500' },
     en_camino: { label: 'En camino', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100', punto: 'bg-blue-500' },
     en_proceso: { label: 'En proceso', bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-100', punto: 'bg-cyan-500' },
     resuelto: { label: 'Resuelto', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100', punto: 'bg-emerald-500' },
@@ -536,8 +545,17 @@ export default function EscuelaDashboard() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [institucion, setInstitucion] = useState<Institucion | null>(null)
   const [tickets, setTickets] = useState<Ticket[]>([])
+  const [reportesUso, setReportesUso] = useState<ReporteUsoCompleto[]>([])
   const [loading, setLoading] = useState(true)
   const [mostrarReportar, setMostrarReportar] = useState(false)
+  const [mostrarNuevoReporte, setMostrarNuevoReporte] = useState(false)
+  const [reporteImprimir, setReporteImprimir] = useState<ReporteUsoCompleto | null>(null)
+  const [modalCodigoAcceso, setModalCodigoAcceso] = useState<{
+    abierto: boolean
+    ticketId?: number
+    ticketFolio?: string
+    ticketTitulo?: string
+  }>({ abierto: false })
   const [seleccionado, setSeleccionado] = useState<Ticket | null>(null)
   const [comentarios, setComentarios] = useState<Comentario[]>([])
   const [cargandoComentarios, setCargandoComentarios] = useState(false)
@@ -545,6 +563,18 @@ export default function EscuelaDashboard() {
   useEffect(() => {
     cargar()
   }, [])
+
+  async function cargarReportes() {
+    try {
+      const res = await fetch('/api/reportes-uso')
+      const json = await res.json()
+      if (res.ok && json.reportes) {
+        setReportesUso(json.reportes)
+      }
+    } catch (err) {
+      console.error('Error cargando reportes_uso:', err)
+    }
+  }
 
   async function cargar() {
     try {
@@ -576,6 +606,8 @@ export default function EscuelaDashboard() {
         .order('created_at', { ascending: false })
         .limit(20)
       setTickets(tks || [])
+
+      await cargarReportes()
     } catch (err) {
       console.error(err)
     } finally {
@@ -659,8 +691,20 @@ export default function EscuelaDashboard() {
       <aside className="flex flex-col justify-between h-screen w-64 fixed left-0 top-0 z-50 bg-white border-r border-slate-200 select-none text-slate-600">
         <div className="flex flex-col overflow-y-auto">
           <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-100 bg-white">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/80 p-1 flex items-center justify-center shadow-sm flex-shrink-0">
-              <div className="w-full h-full rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-xs">
+            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/80 p-1 flex items-center justify-center shadow-xs flex-shrink-0 overflow-hidden">
+              <img
+                src="/logo_gpon.png"
+                alt="GPON Telecom"
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  const target = e.currentTarget
+                  target.style.display = 'none'
+                  if (target.nextElementSibling) {
+                    (target.nextElementSibling as HTMLElement).style.display = 'flex'
+                  }
+                }}
+              />
+              <div className="hidden w-full h-full rounded-lg bg-[#2563EB] items-center justify-center text-white font-bold text-xs">
                 G
               </div>
             </div>
@@ -711,6 +755,29 @@ export default function EscuelaDashboard() {
                   </span>
                 )}
               </a>
+              <a href="#reportes-semestrales" className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all">
+                <span className="flex items-center gap-2.5">
+                  <FontAwesomeIcon icon={faFileAlt} className="w-4 h-4 text-blue-600" />
+                  Reportes de Uso (2/año)
+                </span>
+                {reportesUso.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                    {reportesUso.length}
+                  </span>
+                )}
+              </a>
+              <button
+                onClick={() => setModalCodigoAcceso({ abierto: true })}
+                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all text-left w-full"
+              >
+                <span className="flex items-center gap-2.5">
+                  <FontAwesomeIcon icon={faShieldHalved} className="w-4 h-4 text-blue-600" />
+                  Pase Técnico (OTP/QR)
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                  Acceso
+                </span>
+              </button>
               <a href="#historial" className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all">
                 <span className="flex items-center gap-2.5">
                   <FontAwesomeIcon icon={faClockRotateLeft} className="w-4 h-4 text-slate-400" />
@@ -774,6 +841,14 @@ export default function EscuelaDashboard() {
 
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setModalCodigoAcceso({ abierto: true })}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 active:scale-[0.99] transition-all shadow-xs flex items-center gap-1.5"
+              title="Pase de acceso con código OTP o QR para técnicos"
+            >
+              <FontAwesomeIcon icon={faQrcode} className="text-[11px]" />
+              Pase Técnico (QR)
+            </button>
+            <button
               onClick={() => setMostrarReportar(true)}
               className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 active:scale-[0.99] transition-all shadow-sm flex items-center gap-1.5"
             >
@@ -799,7 +874,7 @@ export default function EscuelaDashboard() {
 
         <main className="p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
           {/* Banner */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white p-7 shadow-lg border border-blue-500/30">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#08296c] via-[#0948a4] to-[#0066cc] text-white p-7 shadow-lg border border-blue-400/30">
             <div className="absolute -right-16 -top-20 w-96 h-96 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
             <div className="absolute right-32 -bottom-24 w-72 h-72 rounded-full bg-sky-400/20 blur-xl pointer-events-none"></div>
 
@@ -1034,7 +1109,7 @@ export default function EscuelaDashboard() {
                               {t.titulo}
                             </div>
                             {t.tipo === 'mantenimiento' && (
-                              <div className="text-[10px] text-indigo-600 mt-0.5 flex items-center gap-1">
+                              <div className="text-[10px] text-sky-600 mt-0.5 flex items-center gap-1">
                                 <FontAwesomeIcon icon={faWrench} className="text-[8px]" />
                                 Mantenimiento programado
                               </div>
@@ -1046,13 +1121,146 @@ export default function EscuelaDashboard() {
                           <td className="px-4 py-3">
                             <ChipEstadoTicket estado={t.estado} />
                           </td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => setModalCodigoAcceso({
+                                  abierto: true,
+                                  ticketId: t.id,
+                                  ticketFolio: t.folio,
+                                  ticketTitulo: t.titulo,
+                                })}
+                                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-all inline-flex items-center gap-1"
+                                title="Generar código o QR de acceso para este reporte"
+                              >
+                                <FontAwesomeIcon icon={faKey} className="text-[10px]" />
+                                Pase
+                              </button>
+                              <button
+                                onClick={() => abrirTicket(t)}
+                                className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-all inline-flex items-center gap-1.5"
+                              >
+                                <FontAwesomeIcon icon={faEye} className="text-[10px]" />
+                                Ver
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Sección: Reportes Semestrales de Uso de Internet */}
+            <div id="reportes-semestrales" className="pt-6 border-t border-slate-100 flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                      <FontAwesomeIcon icon={faFileAlt} className="text-blue-600" />
+                      Reportes Semestrales de Uso y Aprovechamiento de Internet
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                      2 veces al año
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Cédulas oficiales semestrales para documentar el impacto educativo y justificar la conectividad del plantel.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setMostrarNuevoReporte(true)}
+                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm flex items-center justify-center gap-2 shrink-0"
+                >
+                  <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
+                  Nuevo Reporte Semestral
+                </button>
+              </div>
+
+              {/* Lista de reportes semestrales */}
+              <div className="overflow-x-auto rounded-xl border border-slate-200/80">
+                <table className="w-full text-left text-xs text-slate-600">
+                  <thead className="bg-slate-50 border-b border-slate-200/80 text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
+                    <tr>
+                      <th className="px-4 py-3">Folio</th>
+                      <th className="px-4 py-3">Ciclo y Periodo</th>
+                      <th className="px-4 py-3">Reporte Escrito</th>
+                      <th className="px-4 py-3">Evidencias</th>
+                      <th className="px-4 py-3">Calidad</th>
+                      <th className="px-4 py-3">Responsable</th>
+                      <th className="px-4 py-3 text-right">Cédula Oficial</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {reportesUso.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
+                          <FontAwesomeIcon icon={faGraduationCap} className="text-3xl text-slate-300 mb-2" />
+                          <p className="text-xs font-semibold text-slate-600">No se han registrado reportes semestrales en este ciclo</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5 max-w-md mx-auto">
+                            Las escuelas beneficiarias deben generar 2 reportes al año (Semestre 1: Ago-Ene y Semestre 2: Feb-Jul).
+                          </p>
+                          <button
+                            onClick={() => setMostrarNuevoReporte(true)}
+                            className="mt-3.5 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm"
+                          >
+                            <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
+                            Generar primer reporte del ciclo
+                          </button>
+                        </td>
+                      </tr>
+                    ) : (
+                      reportesUso.map((rep) => (
+                        <tr key={rep.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-4 py-3 font-mono font-bold text-blue-900 whitespace-nowrap">
+                            REP-{rep.id.toString().padStart(5, '0')}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="font-semibold text-slate-800">{rep.ciclo_escolar}</div>
+                            <span className="text-[10px] font-semibold text-sky-800 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">
+                              {rep.periodo}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 max-w-[240px]">
+                            <p className="text-xs text-slate-700 line-clamp-2 leading-relaxed">
+                              {rep.reporte_texto || 'Sin descripción'}
+                            </p>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {rep.fotos && rep.fotos.length > 0 ? (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                                📷 {rep.fotos.length} foto{rep.fotos.length > 1 ? 's' : ''}
+                              </span>
+                            ) : (
+                              <span className="text-[11px] text-slate-400">Sin fotos</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`capitalize font-semibold text-[11px] px-2 py-0.5 rounded-full border whitespace-nowrap ${
+                              rep.calidad_servicio === 'excelente'
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                : rep.calidad_servicio === 'buena'
+                                ? 'bg-sky-50 text-sky-800 border-sky-200'
+                                : rep.calidad_servicio === 'regular'
+                                ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                : 'bg-rose-50 text-rose-800 border-rose-200'
+                            }`}>
+                              {rep.calidad_servicio}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-700 max-w-[160px]">
+                            <div className="font-medium text-xs truncate">{rep.responsable_nombre}</div>
+                            <div className="text-[10px] text-slate-400 truncate">{rep.responsable_cargo}</div>
+                          </td>
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
                             <button
-                              onClick={() => abrirTicket(t)}
-                              className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-all inline-flex items-center gap-1.5"
+                              onClick={() => setReporteImprimir(rep)}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-all inline-flex items-center gap-1.5"
                             >
-                              <FontAwesomeIcon icon={faEye} className="text-[10px]" />
-                              Ver
+                              <FontAwesomeIcon icon={faPrint} className="text-[11px]" />
+                              Ver / Imprimir
                             </button>
                           </td>
                         </tr>
@@ -1089,7 +1297,7 @@ export default function EscuelaDashboard() {
         </div>
       )}
 
-      {/* Modal detalle */}
+      {/* Modal detalle ticket */}
       {seleccionado && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[2000] p-3 overflow-y-auto">
           <div className="w-full max-w-2xl my-8">
@@ -1102,6 +1310,38 @@ export default function EscuelaDashboard() {
             />
           </div>
         </div>
+      )}
+
+      {/* Modal nuevo reporte semestral de uso */}
+      {mostrarNuevoReporte && (
+        <ModalNuevoReporteUso
+          onClose={() => setMostrarNuevoReporte(false)}
+          onCreated={cargarReportes}
+          institucionNombre={institucion?.nombre}
+          institucionCCT={institucion?.cct || undefined}
+          directorDefault={institucion?.director || profile?.full_name || undefined}
+        />
+      )}
+
+      {/* Modal de impresión oficial de reporte */}
+      {reporteImprimir && (
+        <ReporteUsoImpresionModal
+          reporte={reporteImprimir}
+          onClose={() => setReporteImprimir(null)}
+        />
+      )}
+
+      {/* Modal pase de acceso técnico OTP / QR */}
+      {modalCodigoAcceso.abierto && (
+        <ModalCodigoAccesoEscuela
+          onClose={() => setModalCodigoAcceso({ abierto: false })}
+          institucionId={institucion?.id}
+          institucionNombre={institucion?.nombre}
+          institucionCCT={institucion?.cct || undefined}
+          ticketId={modalCodigoAcceso.ticketId}
+          ticketFolio={modalCodigoAcceso.ticketFolio}
+          ticketTitulo={modalCodigoAcceso.ticketTitulo}
+        />
       )}
     </div>
   )

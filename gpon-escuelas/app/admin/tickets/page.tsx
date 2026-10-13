@@ -79,13 +79,13 @@ type Profile = {
 // ============================================================
 function ChipEstado({ estado }: { estado: EstadoTicket }) {
   const config: Record<EstadoTicket, { label: string; bg: string; text: string; border: string; icon: any }> = {
-    abierto: { label: 'Abierto', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: faExclamationTriangle },
-    en_revision: { label: 'En revisión', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', icon: faEye },
-    programado: { label: 'Programado', bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', icon: faCalendarPlus },
-    en_camino: { label: 'En camino', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: faClock },
-    en_proceso: { label: 'En proceso', bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200', icon: faWrench },
-    resuelto: { label: 'Resuelto', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: faCheckCircle },
-    cancelado: { label: 'Cancelado', bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', icon: faTimes },
+    abierto: { label: 'Abierto', bg: 'bg-amber-50 dark:bg-amber-950/40', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800', icon: faExclamationTriangle },
+    en_revision: { label: 'En revisión', bg: 'bg-sky-50 dark:bg-sky-950/40', text: 'text-sky-700 dark:text-sky-300', border: 'border-sky-200 dark:border-sky-800', icon: faEye },
+    programado: { label: 'Programado', bg: 'bg-sky-50 dark:bg-sky-950/40', text: 'text-sky-700 dark:text-sky-300', border: 'border-sky-200 dark:border-sky-800', icon: faCalendarPlus },
+    en_camino: { label: 'En camino', bg: 'bg-blue-50 dark:bg-blue-950/40', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-800', icon: faClock },
+    en_proceso: { label: 'En proceso', bg: 'bg-cyan-50 dark:bg-cyan-950/40', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-200 dark:border-cyan-800', icon: faWrench },
+    resuelto: { label: 'Resuelto', bg: 'bg-emerald-50 dark:bg-emerald-950/40', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-200 dark:border-emerald-800', icon: faCheckCircle },
+    cancelado: { label: 'Cancelado', bg: 'bg-slate-50 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700', icon: faTimes },
   }
   const c = config[estado]
   return (
@@ -98,10 +98,10 @@ function ChipEstado({ estado }: { estado: EstadoTicket }) {
 
 function ChipPrioridad({ prioridad }: { prioridad: Prioridad }) {
   const config: Record<Prioridad, { label: string; bg: string; text: string; border: string }> = {
-    baja: { label: 'Baja', bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
-    media: { label: 'Media', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-100' },
-    alta: { label: 'Alta', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100' },
-    critica: { label: 'Crítica', bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-100' },
+    baja: { label: 'Baja', bg: 'bg-slate-50 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700' },
+    media: { label: 'Media', bg: 'bg-sky-50 dark:bg-sky-950/40', text: 'text-sky-700 dark:text-sky-300', border: 'border-sky-100 dark:border-sky-800' },
+    alta: { label: 'Alta', bg: 'bg-amber-50 dark:bg-amber-950/40', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-100 dark:border-amber-800' },
+    critica: { label: 'Crítica', bg: 'bg-rose-50 dark:bg-rose-950/40', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-100 dark:border-rose-800' },
   }
   const c = config[prioridad]
   return (
@@ -114,14 +114,14 @@ function ChipPrioridad({ prioridad }: { prioridad: Prioridad }) {
 function ChipTipo({ tipo }: { tipo: TipoTicket }) {
   if (tipo === 'mantenimiento') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-800">
         <FontAwesomeIcon icon={faWrench} className="text-[9px]" />
         Mantenimiento
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-100">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-100 dark:border-rose-800">
       <FontAwesomeIcon icon={faExclamationTriangle} className="text-[9px]" />
       Incidencia
     </span>
@@ -184,26 +184,26 @@ function ModalCrearTicket({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-      <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-          <FontAwesomeIcon icon={faPlus} className="text-blue-600" />
+    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <FontAwesomeIcon icon={faPlus} className="text-blue-600 dark:text-blue-400" />
           Nueva incidencia
         </h2>
-        <button onClick={onClose} className="text-slate-400 hover:text-slate-600" disabled={guardando}>
+        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" disabled={guardando}>
           <FontAwesomeIcon icon={faTimes} />
         </button>
       </div>
 
       <form onSubmit={submit} className="p-5 space-y-4">
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
             {error}
           </div>
         )}
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Título *
           </label>
           <input
@@ -212,12 +212,12 @@ function ModalCrearTicket({
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
             placeholder="Ej: Internet lento en laboratorio"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm placeholder:text-slate-400"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
+          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Descripción
           </label>
           <textarea
@@ -225,19 +225,19 @@ function ModalCrearTicket({
             onChange={(e) => setDescripcion(e.target.value)}
             rows={3}
             placeholder="Describe el problema con detalle..."
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm placeholder:text-slate-400"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Categoría
             </label>
             <select
               value={categoria}
               onChange={(e) => setCategoria(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg text-sm"
             >
               <option value="">— Sin categoría —</option>
               {categorias.map((c) => (
@@ -248,13 +248,13 @@ function ModalCrearTicket({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Prioridad
             </label>
             <select
               value={prioridad}
               onChange={(e) => setPrioridad(e.target.value as Prioridad)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg text-sm"
             >
               <option value="baja">Baja</option>
               <option value="media">Media</option>
@@ -264,11 +264,11 @@ function ModalCrearTicket({
           </div>
         </div>
 
-        <div className="flex gap-3 pt-4 border-t border-slate-200">
+        <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
           <button
             type="submit"
             disabled={guardando}
-            className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors text-sm font-semibold"
+            className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 transition-colors text-sm font-semibold shadow-sm"
           >
             {guardando ? 'Creando...' : 'Crear incidencia'}
           </button>
@@ -276,7 +276,7 @@ function ModalCrearTicket({
             type="button"
             onClick={onClose}
             disabled={guardando}
-            className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors text-sm font-semibold"
+            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm font-semibold border border-transparent dark:border-slate-700"
           >
             Cancelar
           </button>
@@ -401,10 +401,10 @@ function ModalDetalleTicket({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[95vh] overflow-y-auto">
-      <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between sticky top-0 z-10">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden max-h-[95vh] overflow-y-auto">
+      <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3 flex-wrap">
-          <h2 className="text-lg font-bold text-slate-900 font-mono">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white font-mono">
             {ticket.folio}
           </h2>
           <ChipTipo tipo={ticket.tipo} />
@@ -413,7 +413,7 @@ function ModalDetalleTicket({
         </div>
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-slate-600"
+          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
           disabled={guardando}
         >
           <FontAwesomeIcon icon={faTimes} />
@@ -423,39 +423,39 @@ function ModalDetalleTicket({
       <div className="p-5 space-y-5">
         {/* Info */}
         <div>
-          <h3 className="text-sm font-bold text-slate-900 mb-2">{ticket.titulo}</h3>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">{ticket.titulo}</h3>
           {ticket.descripcion && (
-            <p className="text-sm text-slate-600 whitespace-pre-wrap">{ticket.descripcion}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{ticket.descripcion}</p>
           )}
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-xs">
-          <div className="bg-slate-50 rounded-lg p-3">
-            <span className="text-slate-500 block mb-0.5">Creado</span>
-            <span className="font-medium text-slate-900">
+          <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 rounded-lg p-3">
+            <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Creado</span>
+            <span className="font-medium text-slate-900 dark:text-white">
               {new Date(ticket.created_at).toLocaleString('es-MX')}
             </span>
           </div>
           {ticket.categoria && (
-            <div className="bg-slate-50 rounded-lg p-3">
-              <span className="text-slate-500 block mb-0.5">Categoría</span>
-              <span className="font-medium text-slate-900 capitalize">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 rounded-lg p-3">
+              <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Categoría</span>
+              <span className="font-medium text-slate-900 dark:text-white capitalize">
                 {ticket.categoria.replace('_', ' ')}
               </span>
             </div>
           )}
           {ticket.programado_para && (
-            <div className="bg-slate-50 rounded-lg p-3">
-              <span className="text-slate-500 block mb-0.5">Programado para</span>
-              <span className="font-medium text-slate-900">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 rounded-lg p-3">
+              <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Programado para</span>
+              <span className="font-medium text-slate-900 dark:text-white">
                 {new Date(ticket.programado_para).toLocaleString('es-MX')}
               </span>
             </div>
           )}
           {ticket.ticket_origen_id && (
-            <div className="bg-slate-50 rounded-lg p-3">
-              <span className="text-slate-500 block mb-0.5">Origen</span>
-              <span className="font-medium text-slate-900 font-mono">
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 rounded-lg p-3">
+              <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Origen</span>
+              <span className="font-medium text-slate-900 dark:text-white font-mono">
                 Ticket #{ticket.ticket_origen_id}
               </span>
             </div>
@@ -464,20 +464,20 @@ function ModalDetalleTicket({
 
         {/* Edición de estado (solo admin/técnico) */}
         {puedeEditar && (
-          <div className="bg-sky-50 border border-sky-100 rounded-xl p-4 space-y-3">
-            <h3 className="text-xs font-bold text-sky-900 uppercase tracking-wider">
+          <div className="bg-sky-50 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 rounded-xl p-4 space-y-3">
+            <h3 className="text-xs font-bold text-sky-900 dark:text-sky-300 uppercase tracking-wider">
               Gestión del ticket
             </h3>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Estado
                 </label>
                 <select
                   value={estado}
                   onChange={(e) => setEstado(e.target.value as EstadoTicket)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                 >
                   {estadosDisponibles.map((e) => (
                     <option key={e.value} value={e.value}>
@@ -487,7 +487,7 @@ function ModalDetalleTicket({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
+                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Cuadrilla / Técnico
                 </label>
                 <input
@@ -495,7 +495,7 @@ function ModalDetalleTicket({
                   value={cuadrilla}
                   onChange={(e) => setCuadrilla(e.target.value)}
                   placeholder="Ej: Cuadrilla 04 (Téc. Arriaga)"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -504,7 +504,7 @@ function ModalDetalleTicket({
               <button
                 onClick={guardarCambios}
                 disabled={guardando}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 text-xs font-semibold"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 text-xs font-semibold shadow-sm"
               >
                 {guardando ? 'Guardando...' : 'Guardar cambios'}
               </button>
@@ -512,7 +512,7 @@ function ModalDetalleTicket({
               {ticket.tipo === 'incidencia' && (
                 <button
                   onClick={() => setMostrarAgendar(!mostrarAgendar)}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-xs font-semibold flex items-center gap-1.5"
+                  className="px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600 text-xs font-semibold flex items-center gap-1.5 shadow-sm"
                 >
                   <FontAwesomeIcon icon={faCalendarPlus} className="text-xs" />
                   {mostrarAgendar ? 'Cancelar' : 'Agendar mantenimiento'}
@@ -522,9 +522,9 @@ function ModalDetalleTicket({
 
             {/* Formulario agendar */}
             {mostrarAgendar && (
-              <div className="pt-3 border-t border-sky-200 space-y-3">
+              <div className="pt-3 border-t border-sky-200 dark:border-sky-800 space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Título del mantenimiento *
                   </label>
                   <input
@@ -532,48 +532,48 @@ function ModalDetalleTicket({
                     value={mantTitulo}
                     onChange={(e) => setMantTitulo(e.target.value)}
                     placeholder="Ej: Revisión de empalme en poste 142"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Descripción
                   </label>
                   <textarea
                     value={mantDescripcion}
                     onChange={(e) => setMantDescripcion(e.target.value)}
                     rows={2}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Fecha programada
                     </label>
                     <input
                       type="datetime-local"
                       value={mantFecha}
                       onChange={(e) => setMantFecha(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                      className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">
+                    <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Cuadrilla
                     </label>
                     <input
                       type="text"
                       value={mantCuadrilla}
                       onChange={(e) => setMantCuadrilla(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+                      className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400"
                     />
                   </div>
                 </div>
                 <button
                   onClick={agendarMantenimiento}
                   disabled={guardando}
-                  className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-60 text-xs font-semibold"
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 text-xs font-semibold shadow-sm"
                 >
                   {guardando ? 'Agendando...' : 'Confirmar agendado'}
                 </button>
@@ -584,7 +584,7 @@ function ModalDetalleTicket({
 
         {/* Comentarios */}
         <div>
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+          <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
             Historial y comentarios
           </h3>
 
@@ -601,12 +601,12 @@ function ModalDetalleTicket({
                   key={c.id}
                   className={`rounded-lg p-3 text-xs ${
                     c.es_interno
-                      ? 'bg-amber-50 border border-amber-100'
-                      : 'bg-slate-50 border border-slate-200'
+                      ? 'bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-800'
+                      : 'bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-slate-700">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">
                       {c.autor_rol === 'escuela'
                         ? 'Escuela'
                         : c.autor_rol === 'admin'
@@ -615,7 +615,7 @@ function ModalDetalleTicket({
                         ? 'Técnico'
                         : 'Sistema'}
                       {c.es_interno && (
-                        <span className="ml-2 text-[10px] text-amber-700 inline-flex items-center gap-1">
+                        <span className="ml-2 text-[10px] text-amber-700 dark:text-amber-400 inline-flex items-center gap-1">
                           <FontAwesomeIcon icon={faLock} className="text-[8px]" /> interno
                         </span>
                       )}
@@ -624,29 +624,29 @@ function ModalDetalleTicket({
                       {new Date(c.created_at).toLocaleString('es-MX')}
                     </span>
                   </div>
-                  <p className="text-slate-700 whitespace-pre-wrap">{c.contenido}</p>
+                  <p className="text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{c.contenido}</p>
                 </div>
               ))}
             </div>
           )}
 
           {/* Nuevo comentario */}
-          <div className="mt-3 pt-3 border-t border-slate-100">
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <textarea
               value={comentario}
               onChange={(e) => setComentario(e.target.value)}
               rows={2}
               placeholder="Escribe un comentario..."
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg text-sm placeholder:text-slate-400"
             />
             <div className="flex items-center justify-between mt-2">
               {puedeEditar && (
-                <label className="flex items-center gap-2 text-xs text-slate-600">
+                <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={esInterno}
                     onChange={(e) => setEsInterno(e.target.checked)}
-                    className="rounded"
+                    className="rounded border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-blue-600"
                   />
                   Comentario interno (no lo ve la escuela)
                 </label>
@@ -655,7 +655,7 @@ function ModalDetalleTicket({
               <button
                 onClick={enviarComentario}
                 disabled={enviandoComentario || !comentario.trim()}
-                className="px-4 py-1.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-40 text-xs font-semibold flex items-center gap-1.5"
+                className="px-4 py-1.5 bg-slate-900 dark:bg-blue-600 text-white rounded-lg hover:bg-slate-800 dark:hover:bg-blue-700 disabled:opacity-40 text-xs font-semibold flex items-center gap-1.5 shadow-sm"
               >
                 <FontAwesomeIcon icon={faPaperPlane} className="text-[10px]" />
                 {enviandoComentario ? 'Enviando...' : 'Comentar'}
@@ -839,73 +839,73 @@ export default function AdminTickets() {
 
         <main className="p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
               Gestión de Tickets
             </h1>
-            <p className="text-xs md:text-sm text-slate-500">
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">
               Incidencias y mantenimientos programados en las instituciones educativas.
             </p>
           </div>
 
           {/* KPIs */}
           <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <div className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-sm flex flex-col justify-between gap-3">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 p-4 shadow-sm flex flex-col justify-between gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Abiertos</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-100">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Abiertos</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-100 dark:border-amber-800">
                   Revisar
                 </span>
               </div>
               <div>
-                <div className="text-2xl font-bold text-amber-700 leading-none mb-1">
+                <div className="text-2xl font-bold text-amber-700 dark:text-amber-400 leading-none mb-1">
                   {conteos.abiertos}
                 </div>
-                <div className="text-[11px] text-slate-500">Sin asignar</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">Sin asignar</div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-sm flex flex-col justify-between gap-3">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 p-4 shadow-sm flex flex-col justify-between gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">En proceso</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-100">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">En proceso</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-800">
                   Activos
                 </span>
               </div>
               <div>
-                <div className="text-2xl font-bold text-sky-700 leading-none mb-1">
+                <div className="text-2xl font-bold text-sky-700 dark:text-sky-400 leading-none mb-1">
                   {conteos.enProceso}
                 </div>
-                <div className="text-[11px] text-slate-500">Revisión / programado / en curso</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">Revisión / programado / en curso</div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-sm flex flex-col justify-between gap-3">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 p-4 shadow-sm flex flex-col justify-between gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Resueltos</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Resueltos</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800">
                   Cerrados
                 </span>
               </div>
               <div>
-                <div className="text-2xl font-bold text-emerald-700 leading-none mb-1">
+                <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 leading-none mb-1">
                   {conteos.resueltos}
                 </div>
-                <div className="text-[11px] text-slate-500">Completados</div>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">Completados</div>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-200/70 p-4 shadow-sm flex flex-col justify-between gap-3">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 p-4 shadow-sm flex flex-col justify-between gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-500">Total</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Total</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600">
                   Histórico
                 </span>
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-900 leading-none mb-1">
+                <div className="text-2xl font-bold text-slate-900 dark:text-white leading-none mb-1">
                   {conteos.total}
                 </div>
-                <div className="text-[11px] text-slate-500">
+                <div className="text-[11px] text-slate-500 dark:text-slate-400">
                   {conteos.incidencias} incidencias · {conteos.mantenimientos} mant.
                 </div>
               </div>
@@ -913,15 +913,15 @@ export default function AdminTickets() {
           </section>
 
           {/* Tabla */}
-          <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 flex flex-col gap-5">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm p-6 flex flex-col gap-5">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-700/60">
               <div className="flex items-center gap-2 overflow-x-auto select-none pb-1">
                 <button
                   onClick={() => { setFiltroTipo('todos'); setFiltroEstado('todos') }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     filtroTipo === 'todos' && filtroEstado === 'todos'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-slate-900 dark:bg-blue-600 text-white'
+                      : 'bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
                   Todos ({conteos.total})
@@ -931,7 +931,7 @@ export default function AdminTickets() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     filtroTipo === 'incidencia' && filtroEstado === 'todos'
                       ? 'bg-rose-600 text-white'
-                      : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+                      : 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40'
                   }`}
                 >
                   Incidencias ({conteos.incidencias})
@@ -940,17 +940,19 @@ export default function AdminTickets() {
                   onClick={() => { setFiltroTipo('mantenimiento'); setFiltroEstado('todos') }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     filtroTipo === 'mantenimiento' && filtroEstado === 'todos'
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40'
                   }`}
                 >
                   Mantenimientos ({conteos.mantenimientos})
                 </button>
-                <div className="h-5 w-px bg-slate-200 mx-1"></div>
+                <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
                 <button
                   onClick={() => { setFiltroTipo('todos'); setFiltroEstado('abierto') }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    filtroEstado === 'abierto' ? 'bg-amber-600 text-white' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                    filtroEstado === 'abierto'
+                      ? 'bg-amber-600 text-white'
+                      : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40'
                   }`}
                 >
                   Abiertos
@@ -958,7 +960,9 @@ export default function AdminTickets() {
                 <button
                   onClick={() => { setFiltroTipo('todos'); setFiltroEstado('resuelto') }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    filtroEstado === 'resuelto' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                    filtroEstado === 'resuelto'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
                   }`}
                 >
                   Resueltos
@@ -969,9 +973,9 @@ export default function AdminTickets() {
               </span>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200/80 rounded-xl">
+            <div className="overflow-x-auto border border-slate-200/80 dark:border-slate-700 rounded-xl">
               <table className="w-full text-left border-collapse text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-500 font-semibold">
+                <thead className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200/80 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-semibold">
                   <tr>
                     <th className="py-3 px-4 font-medium">Folio</th>
                     <th className="py-3 px-4 font-medium">Tipo</th>
@@ -983,17 +987,17 @@ export default function AdminTickets() {
                     <th className="py-3 px-4 font-medium text-right">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60 text-slate-700 dark:text-slate-200">
                   {filtrados.map((t) => (
-                    <tr key={t.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-mono font-semibold text-slate-900">
+                    <tr key={t.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/40 transition-colors">
+                      <td className="py-3.5 px-4 font-mono font-semibold text-slate-900 dark:text-white">
                         {t.folio}
                       </td>
                       <td className="py-3.5 px-4">
                         <ChipTipo tipo={t.tipo} />
                       </td>
                       <td className="py-3.5 px-4 max-w-[280px]">
-                        <div className="font-semibold text-slate-900 text-xs line-clamp-2">
+                        <div className="font-semibold text-slate-900 dark:text-white text-xs line-clamp-2">
                           {t.titulo}
                         </div>
                       </td>
@@ -1003,10 +1007,10 @@ export default function AdminTickets() {
                       <td className="py-3.5 px-4">
                         <ChipEstado estado={t.estado} />
                       </td>
-                      <td className="py-3.5 px-4 text-xs text-slate-600">
-                        {t.cuadrilla || <span className="text-slate-400">—</span>}
+                      <td className="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-400">
+                        {t.cuadrilla || <span className="text-slate-400 dark:text-slate-500">—</span>}
                       </td>
-                      <td className="py-3.5 px-4 text-[11px] text-slate-500 whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
                         {new Date(t.created_at).toLocaleDateString('es-MX', {
                           day: '2-digit',
                           month: 'short',
@@ -1017,7 +1021,7 @@ export default function AdminTickets() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => abrirTicket(t)}
-                            className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all"
+                            className="px-2.5 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all"
                           >
                             <FontAwesomeIcon icon={faEye} className="text-[10px] mr-1" />
                             Ver
@@ -1025,7 +1029,7 @@ export default function AdminTickets() {
                           {profile?.role === 'admin' && (
                             <button
                               onClick={() => eliminar(t.id)}
-                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-all"
                               title="Eliminar"
                             >
                               <FontAwesomeIcon icon={faTrash} className="text-xs" />
@@ -1039,8 +1043,8 @@ export default function AdminTickets() {
               </table>
 
               {filtrados.length === 0 && (
-                <div className="text-center py-12 text-slate-500">
-                  <FontAwesomeIcon icon={faTicketAlt} className="text-3xl text-slate-300 mb-2" />
+                <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                  <FontAwesomeIcon icon={faTicketAlt} className="text-3xl text-slate-300 dark:text-slate-600 mb-2" />
                   <p className="text-sm font-medium">
                     {busqueda || filtroEstado !== 'todos' || filtroTipo !== 'todos'
                       ? 'No hay tickets con esos filtros'
@@ -1052,9 +1056,9 @@ export default function AdminTickets() {
           </div>
         </main>
 
-        <footer className="mt-auto border-t border-slate-200/60 bg-white px-8 py-4 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between">
+        <footer className="mt-auto border-t border-slate-200/60 dark:border-slate-800 bg-white dark:bg-slate-900 px-8 py-4 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-700">GPON Telecom S.A. de C.V.</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">GPON Telecom S.A. de C.V.</span>
             <span>•</span>
             <span>Sistema de Monitoreo Escolar de Banda Ancha</span>
           </div>

@@ -13,6 +13,7 @@ import {
   faUsers,
   faXmark,
   faArrowRightFromBracket,
+  faChartPie,
 } from '@fortawesome/free-solid-svg-icons'
 export type AdminProfileUser = {
   id?: string
@@ -114,13 +115,15 @@ export default function AdminSidebar({
     .slice(0, 2)
     .toUpperCase()
 
+  const esTecnico = localProfile?.role === 'tecnico'
+
   const navItems = [
     {
       seccion: 'General',
       items: [
         {
           nombre: 'Panel principal',
-          href: '/admin',
+          href: esTecnico ? '/tecnico' : '/admin',
           exact: true,
           icon: (
             <svg
@@ -165,6 +168,13 @@ export default function AdminSidebar({
           icon: <FontAwesomeIcon icon={faFileLines} className="w-4 h-4 flex-shrink-0" />,
           badge: solicitudesCount > 0 ? solicitudesCount : null,
         },
+        {
+          nombre: 'Reportes Semestrales',
+          href: '/admin/reportes',
+          exact: false,
+          icon: <FontAwesomeIcon icon={faChartPie} className="w-4 h-4 flex-shrink-0" />,
+          badge: null,
+        },
       ],
     },
     {
@@ -179,18 +189,22 @@ export default function AdminSidebar({
         },
       ],
     },
-    {
-      seccion: 'Sistema',
-      items: [
-        {
-          nombre: 'Usuarios',
-          href: '/admin/usuarios',
-          exact: false,
-          icon: <FontAwesomeIcon icon={faUsers} className="w-4 h-4 flex-shrink-0" />,
-          badge: null,
-        },
-      ],
-    },
+    ...(!esTecnico
+      ? [
+          {
+            seccion: 'Sistema',
+            items: [
+              {
+                nombre: 'Usuarios',
+                href: '/admin/usuarios',
+                exact: false,
+                icon: <FontAwesomeIcon icon={faUsers} className="w-4 h-4 flex-shrink-0" />,
+                badge: null,
+              },
+            ],
+          },
+        ]
+      : []),
   ]
 
   const sidebarContent = (
@@ -198,14 +212,27 @@ export default function AdminSidebar({
       <div className="flex flex-col overflow-y-auto">
         {/* LOGO */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-slate-100 dark:border-slate-800">
-          <Link href="/admin" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 p-1 flex items-center justify-center shadow-sm flex-shrink-0">
-              <div className="w-full h-full rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-xs">
+          <Link href={esTecnico ? '/tecnico' : '/admin'} className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 p-1 flex items-center justify-center shadow-xs flex-shrink-0 overflow-hidden">
+              <img
+                src="/logo_gpon.png"
+                alt="GPON Telecom"
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  // Fallback si la imagen no carga
+                  const target = e.currentTarget
+                  target.style.display = 'none'
+                  if (target.nextElementSibling) {
+                    (target.nextElementSibling as HTMLElement).style.display = 'flex'
+                  }
+                }}
+              />
+              <div className="hidden w-full h-full rounded-lg bg-[#0066cc] items-center justify-center text-white font-bold text-xs">
                 G
               </div>
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+              <span className="text-sm font-bold text-slate-900 dark:text-white tracking-tight leading-tight group-hover:text-[#0066cc] transition-colors">
                 GPON Telecom
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium tracking-wide">

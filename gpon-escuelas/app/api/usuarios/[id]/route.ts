@@ -37,7 +37,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { full_name, role, telefono, activo, password } = body
+    const { full_name, role, telefono, activo, password, institucionId } = body
 
     const updateFields: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
@@ -63,6 +63,26 @@ export async function PATCH(
     if (errUpdate) {
       console.error('[usuarios/[id] PATCH] Error actualizando perfil:', errUpdate)
       return NextResponse.json({ error: errUpdate.message }, { status: 500 })
+    }
+
+    // Si se especificó cambio de institución vinculada
+    if (institucionId !== undefined) {
+      // Desvincular previas
+      await supabaseAdmin
+        .from('instituciones')
+        .update({ profile_id: null, estado_vinculacion: 'no_vinculada' })
+        .eq('profile_id', id)
+
+      if (institucionId) {
+        await supabaseAdmin
+          .from('instituciones')
+          .update({
+            profile_id: id,
+            estado_vinculacion: 'vinculada',
+            fecha_vinculacion: new Date().toISOString(),
+          })
+          .eq('id', institucionId)
+      }
     }
 
     // Actualizar metadata o contraseña en auth si aplica
@@ -135,6 +155,12 @@ export async function DELETE(
         { status: 400 }
       )
     }
+
+    // 0. Desvincular instituciones asociadas a este usuario
+    await supabaseAdmin
+      .from('instituciones')
+      .update({ profile_id: null, estado_vinculacion: 'no_vinculada' })
+      .eq('profile_id', id)
 
     // 1. Eliminar de profiles
     const { error: errProf } = await supabaseAdmin

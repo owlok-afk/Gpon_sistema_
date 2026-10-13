@@ -50,8 +50,10 @@ export default function LoginPage() {
         .single()
 
       const role = profile?.role
-      if (role === 'admin' || role === 'tecnico') {
+      if (role === 'admin') {
         router.push('/admin')
+      } else if (role === 'tecnico') {
+        router.push('/tecnico')
       } else {
         router.push('/escuela')
       }
@@ -168,8 +170,27 @@ export default function LoginPage() {
             {/* LEFT */}
             <section className="flex-1 flex flex-col justify-between pt-6 lg:pt-10 pb-6 text-white">
               <div>
-                <h1 className="text-3xl sm:text-4xl lg:text-[46px] font-extrabold leading-[1.18] tracking-tight max-w-xl mb-6">
-                  Sistema de Gestion de Servicios de Internet
+                {/* Logo institucional */}
+                <div className="flex items-center gap-3.5 mb-8">
+                  <div className="w-14 h-14 rounded-2xl bg-white p-2 shadow-lg flex items-center justify-center shrink-0 border border-white/20">
+                    <img
+                      src="/logo_gpon.png"
+                      alt="GPON Telecom"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xl font-bold tracking-tight text-white leading-tight">
+                      GPON Telecom
+                    </span>
+                    <span className="text-xs text-blue-200 font-medium tracking-wider">
+                      S.A. DE C.V. · Conectividad Escolar
+                    </span>
+                  </div>
+                </div>
+
+                <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-extrabold leading-[1.18] tracking-tight max-w-xl mb-6">
+                  Sistema de Gestión de Servicios de Internet
                 </h1>
                 <p className="text-blue-100 text-base sm:text-lg leading-relaxed max-w-lg mb-9 opacity-90 font-normal">
                   Plataforma centralizada para la administracion y seguimiento de conectividad en instituciones educativas del Estado de Mexico.

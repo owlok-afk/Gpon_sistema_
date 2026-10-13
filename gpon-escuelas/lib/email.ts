@@ -106,3 +106,62 @@ export async function enviarRechazo({
     html,
   })
 }
+
+// ============================================================
+// NUEVO: Recuperación de contraseña
+// ============================================================
+type EnviarRecuperacionParams = {
+  destinatario: string
+  nombreUsuario: string
+  enlaceRecuperacion: string
+}
+
+export async function enviarRecuperacion({
+  destinatario,
+  nombreUsuario,
+  enlaceRecuperacion,
+}: EnviarRecuperacionParams) {
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; background: #f8fafc;">
+      <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e2e8f0;">
+        <h1 style="color: #0f172a; font-size: 20px; margin: 0 0 8px 0;">Recuperación de contraseña</h1>
+        <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+          Hola <strong>${nombreUsuario}</strong>,
+        </p>
+        <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+          Recibimos una solicitud para restablecer la contraseña de tu cuenta en el <strong>Sistema de Monitoreo Escolar</strong>.
+        </p>
+        <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+          Haz clic en el siguiente botón para crear una nueva contraseña:
+        </p>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${enlaceRecuperacion}" style="display: inline-block; background: #1848bb; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 14px; padding: 14px 32px; border-radius: 10px;">
+            Restablecer mi contraseña
+          </a>
+        </div>
+        <p style="color: #64748b; font-size: 12px; line-height: 1.6;">
+          Si el botón no funciona, copia y pega este enlace en tu navegador:
+        </p>
+        <div style="background: #f1f5f9; border-radius: 8px; padding: 12px; margin: 8px 0 20px 0;">
+          <p style="color: #334155; font-family: monospace; font-size: 11px; word-break: break-all; margin: 0;">
+            ${enlaceRecuperacion}
+          </p>
+        </div>
+        <p style="color: #475569; font-size: 13px; line-height: 1.6;">
+          Este enlace es válido por <strong>1 hora</strong>. Si no solicitaste este cambio, puedes ignorar este correo; tu contraseña actual seguirá funcionando.
+        </p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+        <p style="color: #94a3b8; font-size: 11px; line-height: 1.5; margin: 0;">
+          GPON Telecom S.A. de C.V. — Soporte 24/7: 800-4766-NOC
+        </p>
+      </div>
+    </div>
+  `
+
+  return transporter.sendMail({
+    from: `"GPON Telecom" <${gmailUser}>`,
+    to: destinatario,
+    subject: 'Recuperación de contraseña — Sistema de Monitoreo Escolar',
+    html,
+  })
+}

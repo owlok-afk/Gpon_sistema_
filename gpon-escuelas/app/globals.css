@@ -6,10 +6,10 @@
   --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo,
     monospace;
 
-  --color-brand-dark: #03164c;
-  --color-brand-blue: #083282;
-  --color-brand-accent: #1853d1;
-  --color-brand-button: #1949bd;
+  --color-brand-dark: #08296c;
+  --color-brand-blue: #0948a4;
+  --color-brand-accent: #0066cc;
+  --color-brand-button: #0066cc;
   --color-brand-light: #f8fafc;
 
   --shadow-subtle: 0 1px 2px 0 rgba(0, 0, 0, 0.03),
@@ -26,6 +26,43 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Modo oscuro global */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0f172a;
+  color: #f1f5f9;
+}
+
+/* Soporte Leaflet para modo oscuro */
+html.dark .leaflet-popup-content-wrapper,
+html.dark .leaflet-popup-tip {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border: 1px solid #334155 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .leaflet-popup-content {
+  color: #f1f5f9 !important;
+}
+
+html.dark .leaflet-bar a {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+html.dark .leaflet-bar a:hover {
+  background-color: #334155 !important;
+}
+
+html.dark .leaflet-container {
+  background-color: #0f172a !important;
 }
 
 /* Line clamp helper para títulos largos */

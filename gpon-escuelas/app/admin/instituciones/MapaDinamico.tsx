@@ -424,7 +424,7 @@ export default function MapaDinamico({
                 onClick={() => setLayer('satellite_hd')}
                 className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
                   layer === 'satellite_hd'
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'text-slate-700 hover:bg-slate-100'
                 }`}
                 title="Satélite HD"
@@ -438,7 +438,7 @@ export default function MapaDinamico({
                 onClick={() => setLayer('satellite')}
                 className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
                   layer === 'satellite'
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'text-slate-700 hover:bg-slate-100'
                 }`}
                 title="Satélite Esri"
@@ -452,7 +452,7 @@ export default function MapaDinamico({
                 onClick={() => setLayer('streets')}
                 className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
                   layer === 'streets'
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'text-slate-700 hover:bg-slate-100'
                 }`}
                 title="Calles"
