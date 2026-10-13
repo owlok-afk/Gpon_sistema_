@@ -25,6 +25,7 @@ interface ModalCodigoAccesoEscuelaProps {
   ticketId?: number
   ticketFolio?: string
   ticketTitulo?: string
+  onValidado?: () => void
 }
 
 export default function ModalCodigoAccesoEscuela({
@@ -35,6 +36,7 @@ export default function ModalCodigoAccesoEscuela({
   ticketId,
   ticketFolio,
   ticketTitulo,
+  onValidado,
 }: ModalCodigoAccesoEscuelaProps) {
   const [codigoInfo, setCodigoInfo] = useState<any | null>(null)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
@@ -47,13 +49,13 @@ export default function ModalCodigoAccesoEscuela({
     cargarCodigoActivo()
   }, [ticketId, institucionId])
 
-  // Polling cada 6 segundos si el código está pendiente para detectar cuando el técnico lo valide en puerta
+  // Polling cada 3.5 segundos si el código está pendiente para detectar en vivo cuando el técnico lo valide
   useEffect(() => {
     if (!codigoInfo || codigoInfo.estado !== 'pendiente') return
 
     const interval = setInterval(() => {
       cargarCodigoActivo(true)
-    }, 6000)
+    }, 3500)
 
     return () => clearInterval(interval)
   }, [codigoInfo?.estado, codigoInfo?.id])
@@ -86,6 +88,9 @@ export default function ModalCodigoAccesoEscuela({
       const res = await fetch(`/api/acceso-tecnico/activo?${params.toString()}`)
       const data = await res.json()
       if (res.ok && data.codigo) {
+        if (data.codigo.estado === 'validado' && codigoInfo?.estado === 'pendiente') {
+          onValidado?.()
+        }
         setCodigoInfo(data.codigo)
         if (data.codigo.codigo) {
           await generarQr(data.codigo.codigo)

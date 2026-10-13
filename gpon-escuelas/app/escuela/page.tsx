@@ -125,11 +125,11 @@ function ChipEstadoTicket({ estado }: { estado: EstadoTicket }) {
     en_revision: { label: 'En revisión', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-100', punto: 'bg-sky-500' },
     programado: { label: 'Programado', bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-100', punto: 'bg-sky-500' },
     en_camino: { label: 'En camino', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100', punto: 'bg-blue-500' },
-    en_proceso: { label: 'En proceso', bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-100', punto: 'bg-cyan-500' },
+    en_proceso: { label: 'En sitio (Atendiendo)', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', punto: 'bg-emerald-500' },
     resuelto: { label: 'Resuelto', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100', punto: 'bg-emerald-500' },
     cancelado: { label: 'Cancelado', bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', punto: 'bg-slate-400' },
   }
-  const c = config[estado]
+  const c = config[estado] || config.abierto
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${c.bg} ${c.text} ${c.border}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${c.punto}`}></span>
@@ -576,9 +576,9 @@ export default function EscuelaDashboard() {
     }
   }
 
-  async function cargar() {
+  async function cargar(silencioso = false) {
     try {
-      setLoading(true)
+      if (!silencioso) setLoading(true)
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/login')
@@ -611,7 +611,7 @@ export default function EscuelaDashboard() {
     } catch (err) {
       console.error(err)
     } finally {
-      setLoading(false)
+      if (!silencioso) setLoading(false)
     }
   }
 
@@ -1123,19 +1123,35 @@ export default function EscuelaDashboard() {
                           </td>
                           <td className="px-4 py-3 text-right whitespace-nowrap">
                             <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => setModalCodigoAcceso({
-                                  abierto: true,
-                                  ticketId: t.id,
-                                  ticketFolio: t.folio,
-                                  ticketTitulo: t.titulo,
-                                })}
-                                className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-all inline-flex items-center gap-1"
-                                title="Generar código o QR de acceso para este reporte"
-                              >
-                                <FontAwesomeIcon icon={faKey} className="text-[10px]" />
-                                Pase
-                              </button>
+                              {t.estado === 'en_proceso' ? (
+                                <button
+                                  onClick={() => setModalCodigoAcceso({
+                                    abierto: true,
+                                    ticketId: t.id,
+                                    ticketFolio: t.folio,
+                                    ticketTitulo: t.titulo,
+                                  })}
+                                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-all inline-flex items-center gap-1 shadow-2xs"
+                                  title="Ver datos de la visita técnica activa"
+                                >
+                                  <FontAwesomeIcon icon={faCheckCircle} className="text-[10px] text-emerald-600" />
+                                  <span>En Sitio</span>
+                                </button>
+                              ) : t.estado !== 'resuelto' && t.estado !== 'cancelado' ? (
+                                <button
+                                  onClick={() => setModalCodigoAcceso({
+                                    abierto: true,
+                                    ticketId: t.id,
+                                    ticketFolio: t.folio,
+                                    ticketTitulo: t.titulo,
+                                  })}
+                                  className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-all inline-flex items-center gap-1"
+                                  title="Generar código o QR de acceso para este reporte"
+                                >
+                                  <FontAwesomeIcon icon={faKey} className="text-[10px]" />
+                                  Pase
+                                </button>
+                              ) : null}
                               <button
                                 onClick={() => abrirTicket(t)}
                                 className="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-all inline-flex items-center gap-1.5"
@@ -1341,6 +1357,7 @@ export default function EscuelaDashboard() {
           ticketId={modalCodigoAcceso.ticketId}
           ticketFolio={modalCodigoAcceso.ticketFolio}
           ticketTitulo={modalCodigoAcceso.ticketTitulo}
+          onValidado={() => cargar(true)}
         />
       )}
     </div>

@@ -62,17 +62,27 @@ export async function POST(request: Request) {
       // Verificar si ya fue utilizado antes
       const { data: yaUsado } = await supabaseAdmin
         .from('codigos_acceso_tecnico')
-        .select('estado, validado_en, tecnico_nombre')
+        .select(`
+          *,
+          institucion:instituciones (*),
+          ticket:tickets (*)
+        `)
         .eq('codigo', codigoLimpio)
         .maybeSingle()
 
       if (yaUsado && yaUsado.estado === 'validado') {
-        return NextResponse.json(
-          {
-            error: `Este código ya fue utilizado y validado por ${yaUsado.tecnico_nombre || 'otro técnico'} a las ${new Date(yaUsado.validado_en).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })} hrs.`,
-          },
-          { status: 400 }
-        )
+        const horaVal = yaUsado.validado_en
+          ? new Date(yaUsado.validado_en).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+          : ''
+
+        return NextResponse.json({
+          ok: true,
+          mensaje: `Este acceso ya se encuentra validado y activo para ${yaUsado.tecnico_nombre || 'el técnico'}${horaVal ? ` desde las ${horaVal} hrs` : ''}.`,
+          codigo: yaUsado,
+          institucion: yaUsado.institucion,
+          ticket: yaUsado.ticket,
+          yaEstabaValidado: true,
+        })
       }
 
       return NextResponse.json(
@@ -106,29 +116,65 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    // Si tiene un ticket asociado, actualizar ticket a 'en_proceso' y agregar comentario de auditoría
-    if (registro.ticket_id) {
-      await supabaseAdmin
+    // Determinar qué ticket actualizar
+    let ticketIdParaActualizar = registro.ticket_id
+
+    // Si el pase no tenía ticket asignado, buscar el ticket activo más reciente del plantel
+    if (!ticketIdParaActualizar && registro.institucion_id) {
+      const { data: ticketActivo } = await supabaseAdmin
+        .from('tickets')
+        .select('id, folio, titulo')
+        .eq('institucion_id', registro.institucion_id)
+        .in('estado', ['abierto', 'programado', 'en_camino', 'en_revision'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (ticketActivo) {
+        ticketIdParaActualizar = ticketActivo.id
+        // Vincular el ticket al registro del pase
+        await supabaseAdmin
+          .from('codigos_acceso_tecnico')
+          .update({ ticket_id: ticketActivo.id })
+          .eq('id', registro.id)
+      }
+    }
+
+    let ticketFinal = registro.ticket
+
+    // Si hay un ticket (específico o activo), pasarlo a 'en_proceso' con cuadrilla y bitácora
+    if (ticketIdParaActualizar) {
+      const { data: ticketUpd, error: errUpdateTicket } = await supabaseAdmin
         .from('tickets')
         .update({
           estado: 'en_proceso',
           cuadrilla: tecnicoNombre,
           updated_at: nowIso,
         })
-        .eq('id', registro.ticket_id)
+        .eq('id', ticketIdParaActualizar)
+        .select('*')
+        .single()
 
-      // Registrar comentario en el historial del ticket
-      await supabaseAdmin
-        .from('comentarios')
-        .insert([
-          {
-            ticket_id: registro.ticket_id,
-            autor_id: user.id,
-            autor_rol: perfil.role,
-            contenido: `🔑 Acceso al plantel validado con código de seguridad OTP (${codigoLimpio.slice(0, 3)}-${codigoLimpio.slice(3)}). El técnico ${tecnicoNombre} se encuentra en sitio atendiendo.`,
-            es_interno: false,
-          },
-        ])
+      if (!errUpdateTicket && ticketUpd) {
+        ticketFinal = ticketUpd
+      }
+
+      // Registrar auditoría en ticket_comentarios
+      try {
+        await supabaseAdmin
+          .from('ticket_comentarios')
+          .insert([
+            {
+              ticket_id: ticketIdParaActualizar,
+              autor_id: user.id,
+              autor_rol: perfil.role,
+              contenido: `🔑 Acceso al plantel validado con código de seguridad OTP (${codigoLimpio.slice(0, 3)}-${codigoLimpio.slice(3)}). El técnico ${tecnicoNombre} se encuentra en sitio atendiendo el reporte.`,
+              es_interno: false,
+            },
+          ])
+      } catch (e) {
+        console.error('Error insertando en ticket_comentarios:', e)
+      }
     }
 
     return NextResponse.json({
@@ -136,11 +182,10 @@ export async function POST(request: Request) {
       mensaje: `¡Acceso concedido! Bienvenido al plantel ${registro.institucion?.nombre || ''}.`,
       codigo: codigoActualizado,
       institucion: registro.institucion,
-      ticket: registro.ticket,
+      ticket: ticketFinal,
     })
   } catch (err: any) {
     console.error('Error inesperado validando código:', err)
     return NextResponse.json({ error: err.message || 'Error del servidor' }, { status: 500 })
   }
 }
-

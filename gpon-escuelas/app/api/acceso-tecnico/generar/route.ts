@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     const body = await request.json().catch(() => ({}))
     let institucionId = body.institucion_id ? Number(body.institucion_id) : null
-    const ticketId = body.ticket_id ? Number(body.ticket_id) : null
+    let ticketId = body.ticket_id ? Number(body.ticket_id) : null
 
     // Si es escuela, obtener su institución
     if (!institucionId && perfil?.role === 'escuela') {
@@ -57,21 +57,28 @@ export async function POST(request: Request) {
       )
     }
 
-    // Cancelar códigos anteriores pendientes para este ticket o institución
-    if (ticketId) {
-      await supabaseAdmin
-        .from('codigos_acceso_tecnico')
-        .update({ estado: 'cancelado' })
-        .eq('ticket_id', ticketId)
-        .eq('estado', 'pendiente')
-    } else {
-      await supabaseAdmin
-        .from('codigos_acceso_tecnico')
-        .update({ estado: 'cancelado' })
+    // Si no viene ticketId pero el plantel tiene tickets activos, vincular automáticamente el más reciente
+    if (!ticketId) {
+      const { data: ticketActivo } = await supabaseAdmin
+        .from('tickets')
+        .select('id')
         .eq('institucion_id', institucionId)
-        .is('ticket_id', null)
-        .eq('estado', 'pendiente')
+        .in('estado', ['abierto', 'programado', 'en_camino', 'en_revision'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (ticketActivo) {
+        ticketId = ticketActivo.id
+      }
     }
+
+    // Cancelar cualquier código anterior pendiente de la institución para que solo haya 1 código activo
+    await supabaseAdmin
+      .from('codigos_acceso_tecnico')
+      .update({ estado: 'cancelado' })
+      .eq('institucion_id', institucionId)
+      .eq('estado', 'pendiente')
 
     // Generar nuevo código de 6 dígitos único
     let codigo = generarCodigoAleatorio()
@@ -89,7 +96,7 @@ export async function POST(request: Request) {
       intentos++
     }
 
-    // Vigencia: 12 horas desde ahora
+    // Vigencia: 12 horas
     const expiraEn = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString()
 
     const { data: nuevoCodigo, error: insertError } = await supabaseAdmin
@@ -125,4 +132,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err.message || 'Error del servidor' }, { status: 500 })
   }
 }
-

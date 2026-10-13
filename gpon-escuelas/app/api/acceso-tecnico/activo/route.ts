@@ -46,6 +46,11 @@ export async function GET(request: Request) {
       if (tck && tck.institucion_id) institucionId = tck.institucion_id
     }
 
+    if (!institucionId && !ticketId) {
+      return NextResponse.json({ codigo: null, ok: true })
+    }
+
+    // Buscar el código más reciente de la institución que esté pendiente o validado en las últimas 24 hrs
     let query = supabaseAdmin
       .from('codigos_acceso_tecnico')
       .select(`
@@ -57,11 +62,28 @@ export async function GET(request: Request) {
       .limit(1)
 
     if (ticketId) {
-      query = query.eq('ticket_id', ticketId)
-    } else if (institucionId) {
-      query = query.eq('institucion_id', institucionId)
-    } else {
-      return NextResponse.json({ codigo: null, ok: true })
+      // Buscar primero por ticket, y si no, por institucion
+      const { data: dataTicket } = await supabaseAdmin
+        .from('codigos_acceso_tecnico')
+        .select(`
+          *,
+          institucion:instituciones (id, nombre, cct),
+          ticket:tickets (id, folio, titulo)
+        `)
+        .eq('ticket_id', ticketId)
+        .in('estado', ['pendiente', 'validado'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (dataTicket && dataTicket.length > 0) {
+        return NextResponse.json({ codigo: dataTicket[0], ok: true })
+      }
+    }
+
+    if (institucionId) {
+      query = query
+        .eq('institucion_id', institucionId)
+        .in('estado', ['pendiente', 'validado'])
     }
 
     const { data, error } = await query
@@ -82,4 +104,3 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: err.message || 'Error del servidor' }, { status: 500 })
   }
 }
-
