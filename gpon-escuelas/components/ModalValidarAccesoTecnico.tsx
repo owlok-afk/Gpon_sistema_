@@ -37,8 +37,7 @@ export default function ModalValidarAccesoTecnico({
     if (error) setError(null)
   }
 
-  async function handleValidar(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleValidar() {
     if (!codigo || codigo.length < 6) {
       setError('Por favor ingresa el código completo de 6 dígitos.')
       return
@@ -64,7 +63,11 @@ export default function ModalValidarAccesoTecnico({
       }
 
       setExito(data)
-      onValidado(data)
+      try {
+        onValidado(data)
+      } catch (errCallback) {
+        console.error('Error en callback onValidado:', errCallback)
+      }
     } catch (err: any) {
       setError(err.message || 'Error al validar el código.')
     } finally {
@@ -162,7 +165,7 @@ export default function ModalValidarAccesoTecnico({
             </div>
           ) : (
             /* Formulario para ingresar el código */
-            <form onSubmit={handleValidar} className="space-y-5">
+            <div className="space-y-5">
               <div className="text-center space-y-1">
                 <p className="text-xs text-slate-600 dark:text-slate-300">
                   Solicita al personal de la escuela el <strong>código de 6 dígitos</strong> o el <strong>código QR</strong> para acreditar tu visita:
@@ -186,6 +189,12 @@ export default function ModalValidarAccesoTecnico({
                   placeholder="000000"
                   value={codigo}
                   onChange={handleInputChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && codigo.length === 6 && !validando) {
+                      e.preventDefault()
+                      handleValidar()
+                    }
+                  }}
                   className="w-full max-w-[260px] py-3 text-center text-3xl font-black font-mono tracking-[0.35em] bg-blue-50/50 dark:bg-slate-800 border-2 border-blue-400 dark:border-blue-500 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/20 shadow-inner"
                 />
                 <span className="text-[10px] text-slate-400 mt-1.5 font-medium">
@@ -213,9 +222,10 @@ export default function ModalValidarAccesoTecnico({
                   Cancelar
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleValidar}
                   disabled={validando || codigo.length < 6}
-                  className="w-1/2 py-2.5 bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-md flex items-center justify-center gap-2 transition-all"
+                  className="w-1/2 py-2.5 bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   {validando ? (
                     <>
@@ -230,7 +240,7 @@ export default function ModalValidarAccesoTecnico({
                   )}
                 </button>
               </div>
-            </form>
+            </div>
           )}
         </div>
       </div>

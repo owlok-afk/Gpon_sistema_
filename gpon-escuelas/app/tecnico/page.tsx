@@ -711,14 +711,16 @@ export default function TecnicoDashboardPage() {
       {/* MODAL PARA VALIDAR ACCESO TÉCNICO CON CÓDIGO / QR */}
       {modalValidarAcceso && (
         <ModalValidarAccesoTecnico
-          onClose={() => setModalValidarAcceso(false)}
+          onClose={() => {
+            setModalValidarAcceso(false)
+            cargarDatos(true)
+          }}
           onValidado={(res) => {
             if (res?.ticket?.id) {
               setTickets((prev) =>
                 prev.map((t) => (t.id === res.ticket.id ? { ...t, ...res.ticket } : t))
               )
             }
-            cargarDatos(true)
           }}
         />
       )}
