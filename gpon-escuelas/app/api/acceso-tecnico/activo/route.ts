@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server'
 import { getSupabaseServer } from '@/lib/supabaseServer'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  Pragma: 'no-cache',
+  Expires: '0',
+}
+
 export async function GET(request: Request) {
   try {
     const supabaseUser = await getSupabaseServer()
@@ -76,7 +85,7 @@ export async function GET(request: Request) {
         .limit(1)
 
       if (dataTicket && dataTicket.length > 0) {
-        return NextResponse.json({ codigo: dataTicket[0], ok: true })
+        return NextResponse.json({ codigo: dataTicket[0], ok: true }, { headers: NO_CACHE_HEADERS })
       }
     }
 
@@ -90,17 +99,20 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error('Error buscando código activo:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ error: error.message }, { status: 500, headers: NO_CACHE_HEADERS })
     }
 
     const codigo = data && data.length > 0 ? data[0] : null
 
-    return NextResponse.json({
-      codigo,
-      ok: true,
-    })
+    return NextResponse.json(
+      {
+        codigo,
+        ok: true,
+      },
+      { headers: NO_CACHE_HEADERS }
+    )
   } catch (err: any) {
     console.error('Error en GET /api/acceso-tecnico/activo:', err)
-    return NextResponse.json({ error: err.message || 'Error del servidor' }, { status: 500 })
+    return NextResponse.json({ error: err.message || 'Error del servidor' }, { status: 500, headers: NO_CACHE_HEADERS })
   }
 }

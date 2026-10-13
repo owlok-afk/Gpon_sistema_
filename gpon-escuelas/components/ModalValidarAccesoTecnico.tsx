@@ -50,7 +50,11 @@ export default function ModalValidarAccesoTecnico({
     try {
       const res = await fetch('/api/acceso-tecnico/validar', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
         body: JSON.stringify({ codigo }),
       })
 

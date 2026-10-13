@@ -85,7 +85,14 @@ export default function ModalCodigoAccesoEscuela({
       if (ticketId) params.set('ticket_id', ticketId.toString())
       if (institucionId) params.set('institucion_id', institucionId.toString())
 
-      const res = await fetch(`/api/acceso-tecnico/activo?${params.toString()}`)
+      params.set('_t', Date.now().toString())
+      const res = await fetch(`/api/acceso-tecnico/activo?${params.toString()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+        },
+      })
       const data = await res.json()
       if (res.ok && data.codigo) {
         if (data.codigo.estado === 'validado' && codigoInfo?.estado === 'pendiente') {
@@ -111,6 +118,7 @@ export default function ModalCodigoAccesoEscuela({
     try {
       const res = await fetch('/api/acceso-tecnico/generar', {
         method: 'POST',
+        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ticket_id: ticketId || undefined,

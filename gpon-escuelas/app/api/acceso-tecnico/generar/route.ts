@@ -7,6 +7,9 @@ function generarCodigoAleatorio(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function POST(request: Request) {
   try {
     const supabaseUser = await getSupabaseServer()
