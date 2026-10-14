@@ -25,8 +25,10 @@ import {
   faKey,
   faQrcode,
   faShieldHalved,
+  faFlagCheckered,
 } from '@fortawesome/free-solid-svg-icons'
 import ModalValidarAccesoTecnico from '@/components/ModalValidarAccesoTecnico'
+import ModalFinalizarVisitaTecnico from '@/components/ModalFinalizarVisitaTecnico'
 import type { Ticket, EstadoTicket, Prioridad, TipoTicket } from '@/types'
 
 type Profile = {
@@ -60,6 +62,7 @@ export default function TecnicoDashboardPage() {
   const [nuevoComentario, setNuevoComentario] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [modalValidarAcceso, setModalValidarAcceso] = useState(false)
+  const [ticketParaFinalizar, setTicketParaFinalizar] = useState<Ticket | null>(null)
 
   useEffect(() => {
     cargarDatos()
@@ -571,10 +574,14 @@ export default function TecnicoDashboardPage() {
                           <td className="py-3 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               {t.estado === 'en_proceso' ? (
-                                <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800 inline-flex items-center gap-1.5 shadow-2xs">
-                                  <FontAwesomeIcon icon={faCheckCircle} className="text-[10px] text-emerald-600" />
-                                  <span className="hidden sm:inline">En Sitio (Atendiendo)</span>
-                                </span>
+                                <button
+                                  onClick={() => setTicketParaFinalizar(t)}
+                                  className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer animate-pulse hover:animate-none"
+                                  title="Registrar salida del plantel y concluir el servicio"
+                                >
+                                  <FontAwesomeIcon icon={faFlagCheckered} className="text-[10px]" />
+                                  <span>Finalizar Visita (Salida)</span>
+                                </button>
                               ) : t.estado !== 'resuelto' && t.estado !== 'cancelado' ? (
                                 <button
                                   onClick={() => setModalValidarAcceso(true)}
@@ -721,6 +728,23 @@ export default function TecnicoDashboardPage() {
                 prev.map((t) => (t.id === res.ticket.id ? { ...t, ...res.ticket } : t))
               )
             }
+          }}
+        />
+      )}
+
+      {/* MODAL PARA FINALIZAR VISITA TÉCNICA (CHECK-OUT) */}
+      {ticketParaFinalizar && (
+        <ModalFinalizarVisitaTecnico
+          ticket={ticketParaFinalizar}
+          institucion={ticketParaFinalizar.institucion_id ? instituciones[ticketParaFinalizar.institucion_id] : null}
+          onClose={() => setTicketParaFinalizar(null)}
+          onFinalizado={(res) => {
+            if (res?.ticket?.id) {
+              setTickets((prev) =>
+                prev.map((t) => (t.id === res.ticket.id ? { ...t, ...res.ticket } : t))
+              )
+            }
+            cargarDatos(true)
           }}
         />
       )}

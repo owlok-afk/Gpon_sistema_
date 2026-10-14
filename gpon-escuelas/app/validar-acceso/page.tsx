@@ -20,7 +20,9 @@ import {
   faMapMarkerAlt,
   faWrench,
   faSignInAlt,
+  faFlagCheckered,
 } from '@fortawesome/free-solid-svg-icons'
+import ModalFinalizarVisitaTecnico from '@/components/ModalFinalizarVisitaTecnico'
 
 function ValidarAccesoContent() {
   const searchParams = useSearchParams()
@@ -31,6 +33,7 @@ function ValidarAccesoContent() {
   const [loadingUser, setLoadingUser] = useState(true)
   const [user, setUser] = useState<any | null>(null)
   const [perfil, setPerfil] = useState<any | null>(null)
+  const [mostrarModalFinalizar, setMostrarModalFinalizar] = useState(false)
 
   // Estados de validación
   const [validando, setValidando] = useState(false)
@@ -246,14 +249,27 @@ function ValidarAccesoContent() {
                 </div>
               </div>
 
-              {/* Botón de acceso al panel técnico */}
-              <Link
-                href="/tecnico"
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
-              >
-                <span>Ir a mi Panel de Atención Técnica</span>
-                <FontAwesomeIcon icon={faArrowRight} />
-              </Link>
+              {/* Acciones: Finalizar visita o ir al panel */}
+              <div className="w-full space-y-2 pt-1">
+                {resultado.ticket && resultado.ticket.estado !== 'resuelto' && (
+                  <button
+                    type="button"
+                    onClick={() => setMostrarModalFinalizar(true)}
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center gap-2 transition-all active:scale-[0.99] cursor-pointer"
+                  >
+                    <FontAwesomeIcon icon={faFlagCheckered} />
+                    <span>Finalizar Visita (Check-out)</span>
+                  </button>
+                )}
+
+                <Link
+                  href="/tecnico"
+                  className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+                >
+                  <span>Ir a mi Panel de Atención Técnica</span>
+                  <FontAwesomeIcon icon={faArrowRight} />
+                </Link>
+              </div>
             </div>
           ) : !user ? (
             /* ======================================================== */
@@ -425,6 +441,23 @@ function ValidarAccesoContent() {
           )}
         </div>
       </div>
+
+      {/* Modal para checkout / finalizar visita */}
+      {mostrarModalFinalizar && resultado?.ticket && (
+        <ModalFinalizarVisitaTecnico
+          ticket={resultado.ticket}
+          institucion={resultado.institucion}
+          onClose={() => setMostrarModalFinalizar(false)}
+          onFinalizado={(res) => {
+            if (res?.ticket) {
+              setResultado((prev: any) => ({
+                ...prev,
+                ticket: res.ticket,
+              }))
+            }
+          }}
+        />
+      )}
     </div>
   )
 }
