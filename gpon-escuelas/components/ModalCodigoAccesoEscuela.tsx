@@ -15,6 +15,7 @@ import {
   faClock,
   faBuilding,
   faTicketAlt,
+  faLink,
 } from '@fortawesome/free-solid-svg-icons'
 
 interface ModalCodigoAccesoEscuelaProps {
@@ -43,6 +44,8 @@ export default function ModalCodigoAccesoEscuela({
   const [cargando, setCargando] = useState<boolean>(true)
   const [generando, setGenerando] = useState<boolean>(false)
   const [copiado, setCopiado] = useState<boolean>(false)
+  const [copiadoLink, setCopiadoLink] = useState<boolean>(false)
+  const [urlAccesoDirecto, setUrlAccesoDirecto] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -62,9 +65,13 @@ export default function ModalCodigoAccesoEscuela({
 
   async function generarQr(codigoNum: string) {
     try {
-      // El QR almacena el payload de validación
-      const url = await QRCode.toDataURL(codigoNum, {
-        width: 260,
+      // El QR almacena el enlace directo para que el escáner del celular lo abra automáticamente
+      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+      const urlDirecta = `${origin}/validar-acceso?codigo=${encodeURIComponent(codigoNum)}`
+      setUrlAccesoDirecto(urlDirecta)
+
+      const url = await QRCode.toDataURL(urlDirecta, {
+        width: 280,
         margin: 2,
         color: {
           dark: '#08296c',
@@ -75,6 +82,13 @@ export default function ModalCodigoAccesoEscuela({
     } catch (e) {
       console.error('Error generando QR:', e)
     }
+  }
+
+  function copiarLinkAlPortapapeles() {
+    if (!urlAccesoDirecto) return
+    navigator.clipboard.writeText(urlAccesoDirecto)
+    setCopiadoLink(true)
+    setTimeout(() => setCopiadoLink(false), 2500)
   }
 
   async function cargarCodigoActivo(silencioso = false) {
@@ -320,17 +334,33 @@ export default function ModalCodigoAccesoEscuela({
                 </div>
               </div>
 
-              {/* Código QR */}
+              {/* Código QR con link directo para escaneo con cámara */}
               {qrDataUrl && (
-                <div className="p-3 bg-white rounded-2xl border-2 border-slate-200 shadow-sm">
-                  <img
-                    src={qrDataUrl}
-                    alt="Código QR de Acceso"
-                    className="w-48 h-48 object-contain"
-                  />
-                  <span className="text-[10px] font-mono text-slate-400 block mt-1">
-                    Escanear con lector o app de técnico
+                <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl border-2 border-blue-200 dark:border-blue-900/60 shadow-md flex flex-col items-center">
+                  <div className="bg-white p-2 rounded-xl">
+                    <img
+                      src={qrDataUrl}
+                      alt="Código QR de Acceso"
+                      className="w-48 h-48 sm:w-52 sm:h-52 object-contain"
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-blue-900 dark:text-blue-300 mt-2.5 flex items-center gap-1.5">
+                    <span>📱 Escanear con cámara del celular</span>
                   </span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 text-center max-w-[240px] mt-0.5">
+                    Abre el enlace directo para validar la entrada al instante.
+                  </span>
+
+                  {urlAccesoDirecto && (
+                    <button
+                      type="button"
+                      onClick={copiarLinkAlPortapapeles}
+                      className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-semibold flex items-center gap-1.5 py-1 px-3 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-700/60 transition-colors cursor-pointer"
+                    >
+                      <FontAwesomeIcon icon={copiadoLink ? faCheck : faLink} className={copiadoLink ? 'text-emerald-500' : ''} />
+                      <span>{copiadoLink ? '¡Enlace copiado!' : 'Copiar enlace directo'}</span>
+                    </button>
+                  )}
                 </div>
               )}
 
