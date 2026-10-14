@@ -562,6 +562,13 @@ export default function EscuelaDashboard() {
 
   useEffect(() => {
     cargar()
+
+    // Sincronización automática periódica en segundo plano para reflejar cambios en tickets y visitas técnicas
+    const timer = setInterval(() => {
+      cargar(true)
+    }, 8000)
+
+    return () => clearInterval(timer)
   }, [])
 
   async function cargarReportes() {

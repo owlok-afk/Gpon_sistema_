@@ -80,7 +80,7 @@ export async function GET(request: Request) {
           ticket:tickets (id, folio, titulo)
         `)
         .eq('ticket_id', ticketId)
-        .in('estado', ['pendiente', 'validado'])
+        .in('estado', ['pendiente', 'validado', 'finalizado'])
         .order('created_at', { ascending: false })
         .limit(1)
 
@@ -92,7 +92,7 @@ export async function GET(request: Request) {
     if (institucionId) {
       query = query
         .eq('institucion_id', institucionId)
-        .in('estado', ['pendiente', 'validado'])
+        .in('estado', ['pendiente', 'validado', 'finalizado'])
     }
 
     const { data, error } = await query

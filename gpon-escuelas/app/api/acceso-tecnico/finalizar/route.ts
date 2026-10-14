@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       await supabaseAdmin
         .from('codigos_acceso_tecnico')
         .update({
-          estado: 'cancelado', // para que no figure como activo
+          estado: 'finalizado',
           notas: paseActivo.notas ? `${paseActivo.notas} | ${notaSalida}` : notaSalida,
           updated_at: nowIso,
         })

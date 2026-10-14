@@ -16,6 +16,8 @@ import {
   faBuilding,
   faTicketAlt,
   faLink,
+  faFlagCheckered,
+  faCheckDouble,
 } from '@fortawesome/free-solid-svg-icons'
 
 interface ModalCodigoAccesoEscuelaProps {
@@ -52,9 +54,12 @@ export default function ModalCodigoAccesoEscuela({
     cargarCodigoActivo()
   }, [ticketId, institucionId])
 
-  // Polling cada 3.5 segundos si el código está pendiente para detectar en vivo cuando el técnico lo valide
+  // Polling cada 3.5 segundos:
+  // - Si está pendiente: para detectar de inmediato cuando el técnico valide entrada
+  // - Si está validado: para detectar cuando el técnico registre su salida (check-out)
   useEffect(() => {
-    if (!codigoInfo || codigoInfo.estado !== 'pendiente') return
+    if (!codigoInfo) return
+    if (codigoInfo.estado !== 'pendiente' && codigoInfo.estado !== 'validado') return
 
     const interval = setInterval(() => {
       cargarCodigoActivo(true)
@@ -65,14 +70,20 @@ export default function ModalCodigoAccesoEscuela({
 
   async function generarQr(codigoNum: string) {
     try {
-      // El QR almacena el enlace directo para que el escáner del celular lo abra automáticamente
-      const origin = typeof window !== 'undefined' ? window.location.origin : ''
+      // Determinación robusta del host/origen:
+      // Si estamos en el navegador en un dominio de producción (ej. vercel.app), usar window.location.origin
+      let origin = typeof window !== 'undefined' ? window.location.origin : ''
+      // Si por alguna razón estuviera vacío o en localhost cuando se prefiere producción:
+      if (!origin && process.env.NEXT_PUBLIC_APP_URL) {
+        origin = process.env.NEXT_PUBLIC_APP_URL
+      }
       const urlDirecta = `${origin}/validar-acceso?codigo=${encodeURIComponent(codigoNum)}`
       setUrlAccesoDirecto(urlDirecta)
 
       const url = await QRCode.toDataURL(urlDirecta, {
-        width: 280,
+        width: 300,
         margin: 2,
+        errorCorrectionLevel: 'M',
         color: {
           dark: '#08296c',
           light: '#ffffff',
@@ -112,11 +123,18 @@ export default function ModalCodigoAccesoEscuela({
         if (data.codigo.estado === 'validado' && codigoInfo?.estado === 'pendiente') {
           onValidado?.()
         }
+        if (data.codigo.estado === 'finalizado' && codigoInfo?.estado === 'validado') {
+          onValidado?.()
+        }
         setCodigoInfo(data.codigo)
         if (data.codigo.codigo) {
           await generarQr(data.codigo.codigo)
         }
       } else {
+        // Si no hay código activo o ya terminó
+        if (codigoInfo?.estado === 'validado') {
+          onValidado?.()
+        }
         setCodigoInfo(null)
       }
     } catch (err: any) {
@@ -168,6 +186,7 @@ export default function ModalCodigoAccesoEscuela({
     : ''
 
   const esValidado = codigoInfo?.estado === 'validado'
+  const esFinalizado = codigoInfo?.estado === 'finalizado'
 
   return (
     <div className="fixed inset-0 bg-black/60 z-[2200] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
@@ -231,7 +250,7 @@ export default function ModalCodigoAccesoEscuela({
               <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
               <span className="text-xs text-slate-400">Verificando pase de acceso...</span>
             </div>
-          ) : !codigoInfo || codigoInfo.estado === 'cancelado' || codigoInfo.estado === 'expirado' ? (
+          ) : !codigoInfo || codigoInfo.estado === 'expirado' ? (
             /* Estado: Sin código activo */
             <div className="py-6 flex flex-col items-center gap-4">
               <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 text-2xl">
@@ -256,6 +275,45 @@ export default function ModalCodigoAccesoEscuela({
                   <FontAwesomeIcon icon={faKey} />
                 )}
                 Generar Código de Acceso
+              </button>
+            </div>
+          ) : esFinalizado ? (
+            /* Estado: FINALIZADO - Técnico ya concluyó visita y registró salida */
+            <div className="w-full py-4 flex flex-col items-center gap-4 animate-in fade-in duration-300">
+              <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-3xl shadow-sm">
+                <FontAwesomeIcon icon={faFlagCheckered} />
+              </div>
+
+              <div className="w-full bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 p-4 rounded-2xl text-center space-y-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200 inline-block">
+                  Visita Concluida
+                </span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Técnico Retirado del Plantel
+                </h3>
+                <div className="pt-1 text-xs text-slate-700 dark:text-slate-300 flex items-center justify-center gap-2 font-medium">
+                  <FontAwesomeIcon icon={faUserTie} className="text-blue-600" />
+                  <span>{codigoInfo.tecnico_nombre || 'Técnico GPON Telecom'}</span>
+                </div>
+
+                {codigoInfo.notas && (
+                  <div className="mt-2 p-2.5 bg-white/80 dark:bg-slate-900/60 rounded-xl border border-blue-100 dark:border-blue-900/40 text-[11px] text-slate-600 dark:text-slate-300 font-mono">
+                    {codigoInfo.notas}
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs">
+                El técnico ha completado la orden de servicio y registrado su salida formal de la institución escolar.
+              </p>
+
+              <button
+                onClick={generarNuevoCodigo}
+                disabled={generando}
+                className="mt-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all"
+              >
+                <FontAwesomeIcon icon={faKey} />
+                Generar código para nueva visita
               </button>
             </div>
           ) : esValidado ? (
