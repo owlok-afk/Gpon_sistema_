@@ -18,6 +18,7 @@ import {
   faLink,
   faFlagCheckered,
   faCheckDouble,
+  faCamera,
 } from '@fortawesome/free-solid-svg-icons'
 
 interface ModalCodigoAccesoEscuelaProps {
@@ -403,7 +404,8 @@ export default function ModalCodigoAccesoEscuela({
                     />
                   </div>
                   <span className="text-xs font-bold text-blue-900 dark:text-blue-300 mt-2.5 flex items-center gap-1.5">
-                    <span>📱 Escanear con cámara del celular</span>
+                    <FontAwesomeIcon icon={faCamera} className="text-blue-600 dark:text-blue-400" />
+                    <span>Escanear con cámara del celular</span>
                   </span>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400 text-center max-w-[240px] mt-0.5">
                     Abre el enlace directo para validar la entrada al instante.

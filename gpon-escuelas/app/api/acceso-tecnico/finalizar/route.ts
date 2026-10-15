@@ -122,7 +122,7 @@ export async function POST(request: Request) {
 
     // Registrar bitácora detallada de check-out en ticket_comentarios
     const contenidoBitacora = [
-      `🏁 VISITA TÉCNICA CONCLUIDA (CHECK-OUT)`,
+      `VISITA TÉCNICA CONCLUIDA (CHECK-OUT)`,
       `• Hora de salida: ${horaSalida} hrs`,
       horaLlegada ? `• Hora de entrada: ${horaLlegada} hrs` : null,
       tiempoTexto !== 'No registrado' ? `• Tiempo laborado en sitio: ${tiempoTexto}` : null,

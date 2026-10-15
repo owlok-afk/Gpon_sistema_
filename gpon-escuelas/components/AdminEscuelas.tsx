@@ -120,7 +120,7 @@ function MapaConArrastre({
       })
 
       // Abrir popup al crear
-      marker.bindPopup('📍 Arrastra el marcador para ajustar la ubicación').openPopup()
+      marker.bindPopup('Arrastra el marcador para ajustar la ubicación').openPopup()
 
       markerRef.current = marker
 

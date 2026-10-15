@@ -376,7 +376,7 @@ export default function ReporteUsoImpresionModal({
               onClick={() => setFotoZoom(null)}
               className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white text-slate-800 flex items-center justify-center shadow-lg font-bold"
             >
-              ✕
+              <FontAwesomeIcon icon={faTimes} />
             </button>
           </div>
         </div>

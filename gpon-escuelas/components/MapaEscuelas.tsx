@@ -339,7 +339,7 @@ export default function MapaEscuelas() {
         {/* Título del área */}
         <div className="absolute top-4 left-3 right-3 z-[1000] pointer-events-none">
           <p className="text-center text-xs text-gray-500 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full inline-block mx-auto w-auto">
-            🗺️ Norte del Estado de México
+            Norte del Estado de México
           </p>
         </div>
       </div>

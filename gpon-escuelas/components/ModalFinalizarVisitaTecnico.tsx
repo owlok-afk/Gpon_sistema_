@@ -128,7 +128,7 @@ export default function ModalFinalizarVisitaTecnico({
 
               <div>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 inline-block mb-1">
-                  ✓ Servicio Resuelto
+                  Servicio Resuelto
                 </span>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   ¡Salida Registrada Correctamente!

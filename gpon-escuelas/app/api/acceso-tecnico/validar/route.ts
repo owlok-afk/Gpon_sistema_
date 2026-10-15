@@ -171,7 +171,7 @@ export async function POST(request: Request) {
               ticket_id: ticketIdParaActualizar,
               autor_id: user.id,
               autor_rol: perfil.role,
-              contenido: `🔑 Acceso al plantel validado con código de seguridad OTP (${codigoLimpio.slice(0, 3)}-${codigoLimpio.slice(3)}). El técnico ${tecnicoNombre} se encuentra en sitio atendiendo el reporte.`,
+              contenido: `Acceso al plantel validado con código de seguridad OTP (${codigoLimpio.slice(0, 3)}-${codigoLimpio.slice(3)}). El técnico ${tecnicoNombre} se encuentra en sitio atendiendo el reporte.`,
               es_interno: false,
             },
           ])

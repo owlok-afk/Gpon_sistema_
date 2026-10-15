@@ -32,6 +32,8 @@ import {
   faQrcode,
   faKey,
   faShieldHalved,
+  faCamera,
+  faBars,
 } from '@fortawesome/free-solid-svg-icons'
 import ModalNuevoReporteUso from '@/components/ModalNuevoReporteUso'
 import ReporteUsoImpresionModal, { ReporteUsoCompleto } from '@/components/ReporteUsoImpresionModal'
@@ -559,6 +561,7 @@ export default function EscuelaDashboard() {
   const [seleccionado, setSeleccionado] = useState<Ticket | null>(null)
   const [comentarios, setComentarios] = useState<Comentario[]>([])
   const [cargandoComentarios, setCargandoComentarios] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     cargar()
@@ -694,35 +697,57 @@ export default function EscuelaDashboard() {
   return (
     <div className="h-full font-sans text-slate-800 bg-[#f8fafc] antialiased flex selection:bg-sky-100 selection:text-sky-900">
 
-      {/* SIDEBAR */}
-      <aside className="flex flex-col justify-between h-screen w-64 fixed left-0 top-0 z-50 bg-white border-r border-slate-200 select-none text-slate-600">
+      {/* BACKDROP MÓVIL */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-xs transition-opacity"
+        />
+      )}
+
+      {/* SIDEBAR RESPONSIVO */}
+      <aside
+        className={`flex flex-col justify-between h-screen w-64 fixed left-0 top-0 z-50 bg-white border-r border-slate-200 select-none text-slate-600 transition-transform duration-200 lg:translate-x-0 ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="flex flex-col overflow-y-auto">
-          <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-100 bg-white">
-            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/80 p-1 flex items-center justify-center shadow-xs flex-shrink-0 overflow-hidden">
-              <img
-                src="/logo_gpon.png"
-                alt="GPON Telecom"
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  const target = e.currentTarget
-                  target.style.display = 'none'
-                  if (target.nextElementSibling) {
-                    (target.nextElementSibling as HTMLElement).style.display = 'flex'
-                  }
-                }}
-              />
-              <div className="hidden w-full h-full rounded-lg bg-[#2563EB] items-center justify-center text-white font-bold text-xs">
-                G
+          <div className="flex items-center justify-between px-5 py-5 border-b border-slate-100 bg-white">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/80 p-1 flex items-center justify-center shadow-xs flex-shrink-0 overflow-hidden">
+                <img
+                  src="/logo_gpon.png"
+                  alt="GPON Telecom"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    const target = e.currentTarget
+                    target.style.display = 'none'
+                    if (target.nextElementSibling) {
+                      (target.nextElementSibling as HTMLElement).style.display = 'flex'
+                    }
+                  }}
+                />
+                <div className="hidden w-full h-full rounded-lg bg-[#2563EB] items-center justify-center text-white font-bold text-xs">
+                  G
+                </div>
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
+                  GPON Telecom
+                </span>
+                <span className="text-[10px] text-slate-500 font-medium tracking-wide">
+                  S.A. DE C.V.
+                </span>
               </div>
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
-                GPON Telecom
-              </span>
-              <span className="text-[10px] text-slate-500 font-medium tracking-wide">
-                S.A. DE C.V.
-              </span>
-            </div>
+
+            {/* Botón cerrar sidebar en móvil */}
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              <FontAwesomeIcon icon={faTimes} />
+            </button>
           </div>
 
           <nav className="flex flex-col gap-5 px-3.5 py-4 text-xs">
@@ -730,7 +755,11 @@ export default function EscuelaDashboard() {
               <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
                 General
               </span>
-              <a href="/escuela" className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-sky-50 text-blue-600 font-semibold border border-sky-100 transition-all">
+              <a
+                href="/escuela"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-sky-50 text-blue-600 font-semibold border border-sky-100 transition-all"
+              >
                 <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
@@ -743,15 +772,22 @@ export default function EscuelaDashboard() {
                 Servicios y Soporte
               </span>
               <button
-                onClick={() => setMostrarReportar(true)}
-                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all text-left w-full"
+                onClick={() => {
+                  setMostrarReportar(true)
+                  setMobileMenuOpen(false)
+                }}
+                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all text-left w-full cursor-pointer"
               >
                 <span className="flex items-center gap-2.5">
                   <FontAwesomeIcon icon={faExclamationTriangle} className="w-4 h-4 text-amber-500" />
                   Reportar Falla
                 </span>
               </button>
-              <a href="#mis-reportes" className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all">
+              <a
+                href="#mis-reportes"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
+              >
                 <span className="flex items-center gap-2.5">
                   <FontAwesomeIcon icon={faClipboardList} className="w-4 h-4 text-slate-400" />
                   Mis Reportes
@@ -762,7 +798,11 @@ export default function EscuelaDashboard() {
                   </span>
                 )}
               </a>
-              <a href="#reportes-semestrales" className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all">
+              <a
+                href="#reportes-semestrales"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
+              >
                 <span className="flex items-center gap-2.5">
                   <FontAwesomeIcon icon={faFileAlt} className="w-4 h-4 text-blue-600" />
                   Reportes de Uso (2/año)
@@ -774,8 +814,11 @@ export default function EscuelaDashboard() {
                 )}
               </a>
               <button
-                onClick={() => setModalCodigoAcceso({ abierto: true })}
-                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all text-left w-full"
+                onClick={() => {
+                  setModalCodigoAcceso({ abierto: true })
+                  setMobileMenuOpen(false)
+                }}
+                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all text-left w-full cursor-pointer"
               >
                 <span className="flex items-center gap-2.5">
                   <FontAwesomeIcon icon={faShieldHalved} className="w-4 h-4 text-blue-600" />
@@ -785,7 +828,11 @@ export default function EscuelaDashboard() {
                   Acceso
                 </span>
               </button>
-              <a href="#historial" className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all">
+              <a
+                href="#historial"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-between px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
+              >
                 <span className="flex items-center gap-2.5">
                   <FontAwesomeIcon icon={faClockRotateLeft} className="w-4 h-4 text-slate-400" />
                   Historial de Servicio
@@ -797,11 +844,19 @@ export default function EscuelaDashboard() {
               <span className="px-2.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
                 Equipo y Red
               </span>
-              <a href="#modem" className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all">
+              <a
+                href="#modem"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
+              >
                 <FontAwesomeIcon icon={faServer} className="w-4 h-4 text-slate-400" />
                 Mi Módem / ONT
               </a>
-              <a href="#consumo" className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all">
+              <a
+                href="#consumo"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium transition-all"
+              >
                 <FontAwesomeIcon icon={faChartLine} className="w-4 h-4 text-slate-400" />
                 Consumo de Datos
               </a>
@@ -825,7 +880,7 @@ export default function EscuelaDashboard() {
           </div>
           <button
             onClick={cerrarSesion}
-            className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 transition-all"
+            className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer"
           >
             <FontAwesomeIcon icon={faSignOutAlt} className="w-3.5 h-3.5 text-slate-400" />
             Cerrar sesión
@@ -833,38 +888,50 @@ export default function EscuelaDashboard() {
         </div>
       </aside>
 
-      {/* MAIN */}
-      <div className="flex-1 pl-64 flex flex-col min-h-screen">
-        <header className="h-16 px-8 sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/70 flex items-center justify-between">
-          <div className="flex items-center w-full max-w-md">
+      {/* MAIN CON PADDING RESPONSIVO */}
+      <div className="flex-1 lg:pl-64 flex flex-col min-h-screen w-full min-w-0">
+        <header className="h-16 px-4 sm:px-8 sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/70 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 w-full max-w-md">
+            {/* Botón hamburguesa móvil */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+              title="Abrir menú"
+            >
+              <FontAwesomeIcon icon={faBars} className="text-base" />
+            </button>
+
             <div className="relative w-full">
               <input
                 type="search"
-                placeholder="Buscar folio, reporte o manual..."
-                className="w-full pl-3.5 pr-14 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-all"
+                placeholder="Buscar folio, reporte..."
+                className="w-full pl-3.5 pr-10 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition-all"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <button
               onClick={() => setModalCodigoAcceso({ abierto: true })}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 active:scale-[0.99] transition-all shadow-xs flex items-center gap-1.5"
+              className="px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 active:scale-[0.99] transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
               title="Pase de acceso con código OTP o QR para técnicos"
             >
               <FontAwesomeIcon icon={faQrcode} className="text-[11px]" />
-              Pase Técnico (QR)
+              <span className="hidden sm:inline">Pase Técnico (QR)</span>
+              <span className="sm:hidden">Pase QR</span>
             </button>
             <button
               onClick={() => setMostrarReportar(true)}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 active:scale-[0.99] transition-all shadow-sm flex items-center gap-1.5"
+              className="px-2.5 sm:px-4 py-2 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 active:scale-[0.99] transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
             >
               <FontAwesomeIcon icon={faExclamationTriangle} className="text-[10px]" />
-              Reportar Falla
+              <span className="hidden sm:inline">Reportar Falla</span>
+              <span className="sm:hidden">Reportar</span>
             </button>
-            <div className="h-5 w-px bg-slate-200 mx-1"></div>
-            <div className="flex items-center gap-2.5 pl-1">
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-semibold text-xs text-white shadow-sm">
+            <div className="h-5 w-px bg-slate-200 mx-0.5 sm:mx-1 hidden xs:block"></div>
+            <div className="flex items-center gap-2.5 pl-0.5 sm:pl-1">
+              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-semibold text-xs text-white shadow-sm flex-shrink-0">
                 {iniciales}
               </div>
               <div className="hidden md:flex flex-col text-left">
@@ -879,7 +946,7 @@ export default function EscuelaDashboard() {
           </div>
         </header>
 
-        <main className="p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
+        <main className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
           {/* Banner */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#08296c] via-[#0948a4] to-[#0066cc] text-white p-7 shadow-lg border border-blue-400/30">
             <div className="absolute -right-16 -top-20 w-96 h-96 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
@@ -1254,7 +1321,8 @@ export default function EscuelaDashboard() {
                           <td className="px-4 py-3 whitespace-nowrap">
                             {rep.fotos && rep.fotos.length > 0 ? (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
-                                📷 {rep.fotos.length} foto{rep.fotos.length > 1 ? 's' : ''}
+                                <FontAwesomeIcon icon={faCamera} className="text-[10px]" />
+                                <span>{rep.fotos.length} foto{rep.fotos.length > 1 ? 's' : ''}</span>
                               </span>
                             ) : (
                               <span className="text-[11px] text-slate-400">Sin fotos</span>

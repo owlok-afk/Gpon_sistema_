@@ -22,6 +22,9 @@ import {
   faInfoCircle,
   faArrowLeft,
   faPlus,
+  faUser,
+  faPhone,
+  faTimes,
 } from '@fortawesome/free-solid-svg-icons'
 
 type EstadoVinculacion = 'no_vinculada' | 'en_proceso' | 'vinculada' | 'rechazada'
@@ -455,7 +458,7 @@ export default function AdminMapa() {
                 onClick={() => setDetalle(null)}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
-                ✕
+                <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
             <div className="p-5 space-y-4">
@@ -482,13 +485,13 @@ export default function AdminMapa() {
                 )}
                 {detalle.director && (
                   <div className="flex items-start gap-2">
-                    <span className="text-slate-400 w-4">👤</span>
+                    <FontAwesomeIcon icon={faUser} className="text-slate-400 mt-0.5 text-xs w-4" />
                     <span className="text-slate-700 dark:text-slate-300">{detalle.director}</span>
                   </div>
                 )}
                 {detalle.telefono && (
                   <div className="flex items-start gap-2">
-                    <span className="text-slate-400 w-4">📞</span>
+                    <FontAwesomeIcon icon={faPhone} className="text-slate-400 mt-0.5 text-xs w-4" />
                     <span className="text-slate-700 dark:text-slate-300 font-mono">{detalle.telefono}</span>
                   </div>
                 )}

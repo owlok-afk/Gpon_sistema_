@@ -20,6 +20,7 @@ import {
   faEye,
   faRotate,
   faCalendarAlt,
+  faCamera,
 } from '@fortawesome/free-solid-svg-icons'
 
 export default function AdminReportesPage() {
@@ -351,7 +352,8 @@ export default function AdminReportesPage() {
                           <td className="py-3.5 px-4 whitespace-nowrap">
                             {r.fotos && r.fotos.length > 0 ? (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 inline-flex items-center gap-1">
-                                📷 {r.fotos.length} foto{r.fotos.length > 1 ? 's' : ''}
+                                <FontAwesomeIcon icon={faCamera} className="text-[10px]" />
+                                <span>{r.fotos.length} foto{r.fotos.length > 1 ? 's' : ''}</span>
                               </span>
                             ) : (
                               <span className="text-[11px] text-slate-400">Sin fotos</span>

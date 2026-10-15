@@ -199,7 +199,7 @@ function ValidarAccesoContent() {
 
               <div>
                 <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 inline-block mb-1.5">
-                  ✓ Acceso Autorizado
+                  Acceso Autorizado
                 </span>
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">
                   ¡Entrada Registrada con Éxito!
