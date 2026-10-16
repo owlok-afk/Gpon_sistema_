@@ -516,8 +516,8 @@ function InstitucionesContent() {
 
           {/* TABLA DE INSTITUCIONES */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+            <div className="overflow-x-auto touch-pan-x">
+              <table className="w-full min-w-[700px] text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 text-slate-400 dark:text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
                     <th className="py-3 px-4 md:px-6">Institución / CCT</th>
@@ -785,7 +785,7 @@ function InstitucionesContent() {
                   )}
                 </div>
 
-                <div className="h-72 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                <div className="h-64 sm:h-80 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
                   <MapaDinamico
                     posicion={posicionMapa}
                     setPosicion={setPosicionMapa}

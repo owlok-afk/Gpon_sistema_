@@ -837,7 +837,7 @@ export default function AdminTickets() {
           }
         />
 
-        <main className="p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
+        <main className="p-4 md:p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
               Gestión de Tickets
@@ -913,9 +913,9 @@ export default function AdminTickets() {
           </section>
 
           {/* Tabla */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm p-6 flex flex-col gap-5">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 shadow-sm p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-700/60">
-              <div className="flex items-center gap-2 overflow-x-auto select-none pb-1">
+              <div className="flex items-center gap-2 overflow-x-auto select-none pb-1 touch-pan-x">
                 <button
                   onClick={() => { setFiltroTipo('todos'); setFiltroEstado('todos') }}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
@@ -973,8 +973,8 @@ export default function AdminTickets() {
               </span>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200/80 dark:border-slate-700 rounded-xl">
-              <table className="w-full text-left border-collapse text-xs">
+            <div className="overflow-x-auto touch-pan-x border border-slate-200/80 dark:border-slate-700 rounded-xl">
+              <table className="w-full min-w-[750px] text-left border-collapse text-xs">
                 <thead className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200/80 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-semibold">
                   <tr>
                     <th className="py-3 px-4 font-medium">Folio</th>

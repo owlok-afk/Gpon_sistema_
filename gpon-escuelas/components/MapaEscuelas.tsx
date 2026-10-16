@@ -41,27 +41,27 @@ function ControlesZoom() {
   const map = useMap()
   
   return (
-    <div className="absolute bottom-20 right-3 z-[1000] flex flex-col gap-2">
+    <div className="absolute bottom-20 right-3 sm:right-4 z-[1000] flex flex-col gap-1.5 sm:gap-2">
       <button
         onClick={() => map.zoomIn()}
-        className="bg-white w-10 h-10 rounded-full shadow-md hover:bg-gray-50 flex items-center justify-center text-xl font-bold border border-gray-200 active:bg-gray-100"
+        className="bg-white/95 backdrop-blur-xs w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-md hover:bg-gray-50 flex items-center justify-center text-lg sm:text-xl font-bold border border-gray-200 active:bg-gray-100 touch-manipulation"
         title="Acercar"
       >
         +
       </button>
       <button
         onClick={() => map.zoomOut()}
-        className="bg-white w-10 h-10 rounded-full shadow-md hover:bg-gray-50 flex items-center justify-center text-xl font-bold border border-gray-200 active:bg-gray-100"
+        className="bg-white/95 backdrop-blur-xs w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-md hover:bg-gray-50 flex items-center justify-center text-lg sm:text-xl font-bold border border-gray-200 active:bg-gray-100 touch-manipulation"
         title="Alejar"
       >
         −
       </button>
       <button
         onClick={() => map.setView([19.95, -99.65], 10)}
-        className="bg-blue-600 w-10 h-10 rounded-full shadow-md hover:bg-blue-700 flex items-center justify-center text-white border border-blue-700 active:bg-blue-800"
+        className="bg-blue-600 w-9 h-9 sm:w-10 sm:h-10 rounded-full shadow-md hover:bg-blue-700 flex items-center justify-center text-white border border-blue-700 active:bg-blue-800 touch-manipulation"
         title="Ver todo el Estado de México"
       >
-        <FontAwesomeIcon icon={faHome} className="text-sm" />
+        <FontAwesomeIcon icon={faHome} className="text-xs sm:text-sm" />
       </button>
     </div>
   )

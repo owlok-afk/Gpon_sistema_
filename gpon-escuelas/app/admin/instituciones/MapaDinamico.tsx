@@ -372,7 +372,7 @@ export default function MapaDinamico({
 
       <div
         ref={containerRef}
-        className="relative w-full h-[450px] rounded-xl overflow-hidden border-2 border-slate-300"
+        className="relative w-full h-[320px] sm:h-[420px] rounded-xl overflow-hidden border-2 border-slate-300"
       >
         <MapContainer
           center={center}
@@ -417,90 +417,90 @@ export default function MapaDinamico({
           <MapEvents />
           <DraggableMarker />
 
-          <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
-            <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden flex">
+          <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-[1000] flex flex-col items-end gap-1.5 sm:gap-2">
+            <div className="bg-white/95 backdrop-blur-xs rounded-lg shadow-md border border-slate-200 overflow-hidden flex">
               <button
                 type="button"
                 onClick={() => setLayer('satellite_hd')}
-                className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                className={`px-2 sm:px-3 h-8 sm:h-9 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 transition-colors ${
                   layer === 'satellite_hd'
                     ? 'bg-blue-600 text-white'
                     : 'text-slate-700 hover:bg-slate-100'
                 }`}
                 title="Satélite HD"
               >
-                <FontAwesomeIcon icon={faSatellite} className="text-[11px]" />
-                HD
+                <FontAwesomeIcon icon={faSatellite} className="text-[10px] sm:text-[11px]" />
+                <span>HD</span>
               </button>
               <div className="w-px bg-slate-200" />
               <button
                 type="button"
                 onClick={() => setLayer('satellite')}
-                className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                className={`px-2 sm:px-3 h-8 sm:h-9 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 transition-colors ${
                   layer === 'satellite'
                     ? 'bg-blue-600 text-white'
                     : 'text-slate-700 hover:bg-slate-100'
                 }`}
                 title="Satélite Esri"
               >
-                <FontAwesomeIcon icon={faSatellite} className="text-[11px]" />
-                Satélite
+                <FontAwesomeIcon icon={faSatellite} className="text-[10px] sm:text-[11px]" />
+                <span className="hidden xs:inline">Satélite</span>
               </button>
               <div className="w-px bg-slate-200" />
               <button
                 type="button"
                 onClick={() => setLayer('streets')}
-                className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+                className={`px-2 sm:px-3 h-8 sm:h-9 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 transition-colors ${
                   layer === 'streets'
                     ? 'bg-blue-600 text-white'
                     : 'text-slate-700 hover:bg-slate-100'
                 }`}
                 title="Calles"
               >
-                <FontAwesomeIcon icon={faMap} className="text-[11px]" />
-                Calles
+                <FontAwesomeIcon icon={faMap} className="text-[10px] sm:text-[11px]" />
+                <span>Calles</span>
               </button>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden flex flex-col">
+            <div className="bg-white/95 backdrop-blur-xs rounded-lg shadow-md border border-slate-200 overflow-hidden flex flex-col">
               <button
                 type="button"
                 onClick={() => mapRef.current?.zoomIn()}
-                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+                className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200 touch-manipulation"
                 title="Acercar"
               >
-                <span className="text-lg font-light leading-none">+</span>
+                <span className="text-base sm:text-lg font-light leading-none">+</span>
               </button>
               <button
                 type="button"
                 onClick={() => mapRef.current?.zoomOut()}
-                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+                className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200 touch-manipulation"
                 title="Alejar"
               >
-                <span className="text-lg font-light leading-none">−</span>
+                <span className="text-base sm:text-lg font-light leading-none">−</span>
               </button>
               <button
                 type="button"
                 onClick={() => mapRef.current?.setView([19.95, -99.65], 10)}
-                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+                className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200 touch-manipulation"
                 title="Centrar en la región"
               >
-                <FontAwesomeIcon icon={faHome} className="text-sm" />
+                <FontAwesomeIcon icon={faHome} className="text-xs sm:text-sm" />
               </button>
               <button
                 type="button"
                 onClick={toggleFullscreen}
-                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors"
+                className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors touch-manipulation"
                 title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
               >
-                <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} className="text-sm" />
+                <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} className="text-xs sm:text-sm" />
               </button>
             </div>
           </div>
 
-          <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow text-xs text-gray-600 flex items-center gap-2">
-            <FontAwesomeIcon icon={faMapPin} className="text-blue-500 text-[10px]" />
-            <span>Click en el mapa o arrastra el marcador</span>
+          <div className="absolute bottom-2.5 left-2.5 sm:bottom-4 sm:left-4 z-[1000] bg-white/90 backdrop-blur-xs px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full shadow text-[10px] sm:text-xs text-gray-600 flex items-center gap-1.5 sm:gap-2">
+            <FontAwesomeIcon icon={faMapPin} className="text-blue-500 text-[9px] sm:text-[10px]" />
+            <span>Toca o arrastra el marcador</span>
           </div>
         </MapContainer>
       </div>

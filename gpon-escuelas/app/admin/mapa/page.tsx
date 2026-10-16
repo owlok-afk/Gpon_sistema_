@@ -25,6 +25,7 @@ import {
   faUser,
   faPhone,
   faTimes,
+  faList,
 } from '@fortawesome/free-solid-svg-icons'
 
 type EstadoVinculacion = 'no_vinculada' | 'en_proceso' | 'vinculada' | 'rechazada'
@@ -122,6 +123,7 @@ export default function AdminMapa() {
   const [seleccionadaId, setSeleccionadaId] = useState<number | null>(null)
   const [detalle, setDetalle] = useState<Institucion | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [vistaMovil, setVistaMovil] = useState<'mapa' | 'lista'>('mapa')
 
   useEffect(() => {
     cargar()
@@ -311,9 +313,42 @@ export default function AdminMapa() {
             </div>
           </section>
 
+          {/* Pestañas de vista para Móvil */}
+          <div className="flex lg:hidden bg-white dark:bg-slate-800 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs mb-1">
+            <button
+              type="button"
+              onClick={() => setVistaMovil('mapa')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                vistaMovil === 'mapa'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+            >
+              <FontAwesomeIcon icon={faMap} />
+              <span>Ver Mapa</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setVistaMovil('lista')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                vistaMovil === 'lista'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+              }`}
+            >
+              <FontAwesomeIcon icon={faList} />
+              <span>Lista ({paraMapa.length})</span>
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-4">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[500px] lg:h-[calc(100vh-280px)]">
-              <div className="p-4 border-b border-slate-100 dark:border-slate-700">
+            {/* Lista lateral de escuelas */}
+            <div
+              className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col overflow-hidden h-[500px] lg:h-[calc(100vh-280px)] ${
+                vistaMovil === 'mapa' ? 'hidden lg:flex' : 'flex'
+              }`}
+            >
+              <div className="p-3 sm:p-4 border-b border-slate-100 dark:border-slate-700">
                 <div className="relative">
                   <FontAwesomeIcon
                     icon={faSearch}
@@ -328,7 +363,7 @@ export default function AdminMapa() {
                   />
                 </div>
 
-                <div className="flex items-center gap-1.5 mt-3 overflow-x-auto pb-1">
+                <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto pb-1">
                   <button
                     onClick={() => setFiltroEstado('todas')}
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold whitespace-nowrap transition-all ${
@@ -386,7 +421,10 @@ export default function AdminMapa() {
                     {paraMapa.map((i) => (
                       <button
                         key={i.id}
-                        onClick={() => setSeleccionadaId(i.id)}
+                        onClick={() => {
+                          setSeleccionadaId(i.id)
+                          setVistaMovil('mapa')
+                        }}
                         className={`w-full text-left p-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors ${
                           seleccionadaId === i.id ? 'bg-sky-50 dark:bg-sky-950/40 border-l-2 border-sky-500' : ''
                         }`}
@@ -407,8 +445,11 @@ export default function AdminMapa() {
                                 {i.domicilio}
                               </div>
                             )}
-                            <div className="mt-1.5">
+                            <div className="mt-1.5 flex items-center justify-between">
                               <ChipEstado estado={i.estado_vinculacion} />
+                              <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 lg:hidden">
+                                Ver en mapa →
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -418,12 +459,24 @@ export default function AdminMapa() {
                 )}
               </div>
 
-              <div className="p-3 border-t border-slate-100 dark:border-slate-700 text-[10px] text-slate-500 dark:text-slate-400 font-mono">
-                {paraMapa.length} de {conteos.conUbicacion} ubicadas
+              <div className="p-3 border-t border-slate-100 dark:border-slate-700 text-[10px] text-slate-500 dark:text-slate-400 font-mono flex items-center justify-between">
+                <span>{paraMapa.length} de {conteos.conUbicacion} ubicadas</span>
+                <button
+                  type="button"
+                  onClick={() => setVistaMovil('mapa')}
+                  className="lg:hidden text-blue-600 font-bold hover:underline"
+                >
+                  Ir al mapa
+                </button>
               </div>
             </div>
 
-            <div className="h-[500px] lg:h-[calc(100vh-280px)] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            {/* Contenedor del Mapa */}
+            <div
+              className={`h-[520px] sm:h-[580px] lg:h-[calc(100vh-280px)] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 ${
+                vistaMovil === 'lista' ? 'hidden lg:block' : 'block'
+              }`}
+            >
               <MapaInstituciones
                 instituciones={paraMapa}
                 seleccionadaId={seleccionadaId}

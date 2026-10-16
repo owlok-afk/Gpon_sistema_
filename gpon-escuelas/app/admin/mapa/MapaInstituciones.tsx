@@ -301,50 +301,50 @@ export default function MapaInstituciones({
         {/* ============================================ */}
         {/* PANEL DE CONTROLES FLOTANTES                  */}
         {/* ============================================ */}
-        <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2">
+        <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-[1000] flex flex-col items-end gap-1.5 sm:gap-2 pointer-events-auto">
 
           {/* Selector de capa */}
-          <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden flex">
+          <div className="bg-white/95 backdrop-blur-xs rounded-lg shadow-md border border-slate-200 overflow-hidden flex">
             <button
               type="button"
               onClick={() => setLayer('satellite_hd')}
-              className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+              className={`px-2 sm:px-3 h-8 sm:h-9 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 transition-colors ${
                 layer === 'satellite_hd'
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-700 hover:bg-slate-100'
               }`}
               title="Satélite HD"
             >
-              <FontAwesomeIcon icon={faSatellite} className="text-[11px]" />
-              HD
+              <FontAwesomeIcon icon={faSatellite} className="text-[10px] sm:text-[11px]" />
+              <span>HD</span>
             </button>
             <div className="w-px bg-slate-200" />
             <button
               type="button"
               onClick={() => setLayer('satellite')}
-              className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+              className={`px-2 sm:px-3 h-8 sm:h-9 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 transition-colors ${
                 layer === 'satellite'
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-700 hover:bg-slate-100'
               }`}
               title="Satélite Esri"
             >
-              <FontAwesomeIcon icon={faSatellite} className="text-[11px]" />
-              Satélite
+              <FontAwesomeIcon icon={faSatellite} className="text-[10px] sm:text-[11px]" />
+              <span className="hidden xs:inline">Satélite</span>
             </button>
             <div className="w-px bg-slate-200" />
             <button
               type="button"
               onClick={() => setLayer('streets')}
-              className={`px-3 h-9 text-[11px] font-semibold flex items-center gap-1.5 transition-colors ${
+              className={`px-2 sm:px-3 h-8 sm:h-9 text-[10px] sm:text-[11px] font-semibold flex items-center gap-1 transition-colors ${
                 layer === 'streets'
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-700 hover:bg-slate-100'
               }`}
               title="Calles"
             >
-              <FontAwesomeIcon icon={faMap} className="text-[11px]" />
-              Calles
+              <FontAwesomeIcon icon={faMap} className="text-[10px] sm:text-[11px]" />
+              <span>Calles</span>
             </button>
           </div>
 
@@ -352,50 +352,50 @@ export default function MapaInstituciones({
           <button
             type="button"
             onClick={() => setIsStreetViewActive((v) => !v)}
-            className={`h-10 px-3 rounded-lg shadow-md border flex items-center gap-2 text-[11px] font-bold transition-colors ${
+            className={`h-8 sm:h-10 px-2.5 sm:px-3 rounded-lg shadow-md border flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-bold transition-colors ${
               isStreetViewActive
                 ? 'bg-amber-500 border-amber-600 text-slate-950 animate-pulse'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                : 'bg-white/95 backdrop-blur-xs border-slate-200 text-slate-700 hover:bg-slate-100'
             }`}
             title="Activar modo Street View: luego haz click en el mapa"
           >
-            <FontAwesomeIcon icon={faCamera} className="text-sm" />
-            {isStreetViewActive ? 'Cancelar' : 'Street View'}
+            <FontAwesomeIcon icon={faCamera} className="text-xs sm:text-sm" />
+            <span>{isStreetViewActive ? 'Cancelar' : 'Street View'}</span>
           </button>
 
           {/* Zoom + Home + Fullscreen */}
-          <div className="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden flex flex-col">
+          <div className="bg-white/95 backdrop-blur-xs rounded-lg shadow-md border border-slate-200 overflow-hidden flex flex-col">
             <button
               type="button"
               onClick={() => mapRef.current?.zoomIn()}
-              className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200 touch-manipulation"
               title="Acercar"
             >
-              <span className="text-lg font-light leading-none">+</span>
+              <span className="text-base sm:text-lg font-light leading-none">+</span>
             </button>
             <button
               type="button"
               onClick={() => mapRef.current?.zoomOut()}
-              className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200 touch-manipulation"
               title="Alejar"
             >
-              <span className="text-lg font-light leading-none">−</span>
+              <span className="text-base sm:text-lg font-light leading-none">−</span>
             </button>
             <button
               type="button"
               onClick={() => mapRef.current?.setView([19.95, -99.65], 10)}
-              className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200"
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors border-b border-slate-200 touch-manipulation"
               title="Centrar en la región"
             >
-              <FontAwesomeIcon icon={faHome} className="text-sm" />
+              <FontAwesomeIcon icon={faHome} className="text-xs sm:text-sm" />
             </button>
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors"
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors touch-manipulation"
               title={isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'}
             >
-              <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} className="text-sm" />
+              <FontAwesomeIcon icon={isFullscreen ? faCompress : faExpand} className="text-xs sm:text-sm" />
             </button>
           </div>
         </div>
@@ -419,24 +419,24 @@ export default function MapaInstituciones({
         )}
 
         {/* Leyenda */}
-        <div className="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm px-3 py-2 rounded-xl shadow border border-slate-200">
-          <p className="text-[10px] font-bold text-slate-700 mb-1.5">Estado</p>
-          <div className="space-y-1 text-[10px]">
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-white shadow"></span>
+        <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-[1000] bg-white/95 backdrop-blur-xs px-2.5 py-2 sm:px-3 sm:py-2 rounded-xl shadow border border-slate-200 pointer-events-auto">
+          <p className="text-[9px] sm:text-[10px] font-bold text-slate-700 mb-1 sm:mb-1.5 uppercase tracking-wider">Estado</p>
+          <div className="flex flex-row sm:flex-col gap-2 sm:gap-1 text-[9px] sm:text-[10px] flex-wrap">
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500 border border-white shadow-xs"></span>
               <span className="text-slate-600">Vinculada</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-amber-500 border-2 border-white shadow"></span>
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500 border border-white shadow-xs"></span>
               <span className="text-slate-600">En proceso</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-rose-500 border-2 border-white shadow"></span>
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-rose-500 border border-white shadow-xs"></span>
               <span className="text-slate-600">Rechazada</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-slate-500 border-2 border-white shadow"></span>
-              <span className="text-slate-600">No vinculada</span>
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-slate-500 border border-white shadow-xs"></span>
+              <span className="text-slate-600">Sin vincular</span>
             </div>
           </div>
         </div>

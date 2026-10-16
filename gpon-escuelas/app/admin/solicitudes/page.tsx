@@ -572,7 +572,7 @@ export default function AdminSolicitudes() {
           }
         />
 
-        <main className="p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
+        <main className="p-4 md:p-8 max-w-7xl w-full mx-auto flex flex-col gap-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
             <div className="flex flex-col gap-1">
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
@@ -707,8 +707,8 @@ export default function AdminSolicitudes() {
               </div>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200/80 dark:border-slate-700 rounded-xl">
-              <table className="w-full text-left border-collapse text-xs">
+            <div className="overflow-x-auto touch-pan-x border border-slate-200/80 dark:border-slate-700 rounded-xl">
+              <table className="w-full min-w-[750px] text-left border-collapse text-xs">
                 <thead className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200/80 dark:border-slate-700 text-slate-500 dark:text-slate-400 font-semibold">
                   <tr>
                     <th className="py-3 px-4 font-medium">CCT</th>
