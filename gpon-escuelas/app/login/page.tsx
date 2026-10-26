@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 
 type Tab = 'login' | 'solicitud'
@@ -305,9 +306,9 @@ export default function LoginPage() {
                             <label className="block text-sm font-semibold text-gray-800" htmlFor="password">
                               Contrasena
                             </label>
-                            <a className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors" href="#">
-                              Olvide mi contrasena
-                            </a>
+                            <Link href="/recuperar-password" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                              ¿Olvidaste tu contraseña?
+                            </Link>
                           </div>
                           <input
                             id="password"
