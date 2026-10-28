@@ -48,6 +48,8 @@ type Institucion = {
   cct: string | null
   domicilio: string | null
   estado_vinculacion: EstadoVinculacion
+  latitude?: number | null
+  longitude?: number | null
 }
 
 type KPIs = {
@@ -188,7 +190,7 @@ export default function AdminDashboard() {
 
       const { data: insts, error: errInst } = await supabase
         .from('instituciones')
-        .select('id, nombre, cct, domicilio, estado_vinculacion')
+        .select('id, nombre, cct, domicilio, estado_vinculacion, latitude, longitude')
 
       if (errInst) {
         console.error('[dashboard] Error instituciones:', errInst)

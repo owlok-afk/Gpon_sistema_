@@ -160,20 +160,20 @@ export default function LoginPage() {
         }
       `}</style>
 
-      <div className="font-sans antialiased text-slate-800 bg-gradient-custom min-h-screen relative overflow-x-hidden select-none">
+      <div className="font-sans antialiased text-slate-800 bg-gradient-custom h-screen max-h-screen relative overflow-hidden select-none flex flex-col justify-center">
         <div aria-hidden="true" className="wave-line-1"></div>
         <div aria-hidden="true" className="wave-line-2"></div>
         <div aria-hidden="true" className="wave-glow"></div>
 
-        <main className="min-h-screen flex items-center justify-center p-4 md:p-8 lg:p-12 relative z-10">
-          <div className="w-full max-w-[1360px] flex flex-col lg:flex-row items-stretch justify-between gap-10 lg:gap-14">
+        <main className="h-full max-h-screen flex items-center justify-center p-3 sm:p-5 lg:p-6 relative z-10">
+          <div className="w-full max-w-[1240px] flex flex-col lg:flex-row items-center lg:items-center justify-between gap-6 lg:gap-10">
 
             {/* LEFT */}
-            <section className="flex-1 flex flex-col justify-between pt-6 lg:pt-10 pb-6 text-white">
+            <section className="flex-1 flex flex-col justify-center text-white py-2">
               <div>
                 {/* Logo institucional */}
-                <div className="flex items-center gap-3.5 mb-8">
-                  <div className="w-14 h-14 rounded-2xl bg-white p-2 shadow-lg flex items-center justify-center shrink-0 border border-white/20">
+                <div className="flex items-center gap-3 mb-4 lg:mb-5">
+                  <div className="w-12 h-12 rounded-xl bg-white p-1.5 shadow-md flex items-center justify-center shrink-0 border border-white/20">
                     <img
                       src="/logo_gpon.png"
                       alt="GPON Telecom"
@@ -190,14 +190,14 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-extrabold leading-[1.18] tracking-tight max-w-xl mb-6">
+                <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-extrabold leading-[1.2] tracking-tight max-w-xl mb-3 lg:mb-4">
                   Sistema de Gestión de Servicios de Internet
                 </h1>
-                <p className="text-blue-100 text-base sm:text-lg leading-relaxed max-w-lg mb-9 opacity-90 font-normal">
+                <p className="text-blue-100 text-sm sm:text-base leading-relaxed max-w-lg mb-5 opacity-90 font-normal">
                   Plataforma centralizada para la administracion y seguimiento de conectividad en instituciones educativas del Estado de Mexico.
                 </p>
 
-                <ul className="space-y-4 mb-12">
+                <ul className="space-y-2.5 mb-6">
                   {[
                     'Gestion de instituciones educativas',
                     'Seguimiento de incidencias en tiempo real',
@@ -216,27 +216,27 @@ export default function LoginPage() {
                 </ul>
               </div>
 
-              <div className="w-full max-w-lg h-[1px] bg-blue-400/25 mb-8"></div>
+              <div className="w-full max-w-lg h-[1px] bg-blue-400/25 mb-5"></div>
 
-              <div className="grid grid-cols-3 max-w-lg gap-6 pt-2">
+              <div className="grid grid-cols-3 max-w-lg gap-4">
                 <div>
-                  <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">248</div>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">248</div>
                   <div className="text-xs sm:text-sm text-blue-200/80 mt-1 font-normal">Instituciones</div>
                 </div>
                 <div>
-                  <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">6</div>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">6</div>
                   <div className="text-xs sm:text-sm text-blue-200/80 mt-1 font-normal">Municipios</div>
                 </div>
                 <div>
-                  <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">231</div>
+                  <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">231</div>
                   <div className="text-xs sm:text-sm text-blue-200/80 mt-1 font-normal">Servicios activos</div>
                 </div>
               </div>
             </section>
 
             {/* RIGHT */}
-            <section className="w-full lg:w-[560px] shrink-0">
-              <div className="bg-white rounded-[26px] shadow-2xl overflow-hidden flex flex-col justify-between border border-white/20">
+            <section className="w-full lg:w-[500px] shrink-0">
+              <div className="bg-white rounded-[22px] shadow-2xl overflow-hidden flex flex-col border border-white/20">
 
                 {/* Tabs */}
                 <div className="grid grid-cols-2 border-b border-gray-100" role="tablist">
@@ -245,7 +245,7 @@ export default function LoginPage() {
                     role="tab"
                     type="button"
                     onClick={() => { setTab('login'); setError(null); setOk(null) }}
-                    className={`py-4 text-center text-sm sm:text-base transition-colors focus:outline-none ${
+                    className={`py-3 text-center text-sm font-semibold transition-colors focus:outline-none ${
                       tab === 'login'
                         ? 'font-bold text-blue-600 border-b-[2.5px] border-blue-600'
                         : 'font-medium text-gray-500 hover:text-gray-700'
@@ -258,7 +258,7 @@ export default function LoginPage() {
                     role="tab"
                     type="button"
                     onClick={() => { setTab('solicitud'); setError(null); setOk(null) }}
-                    className={`py-4 text-center text-sm sm:text-base transition-colors focus:outline-none ${
+                    className={`py-3 text-center text-sm font-semibold transition-colors focus:outline-none ${
                       tab === 'solicitud'
                         ? 'font-bold text-blue-600 border-b-[2.5px] border-blue-600'
                         : 'font-medium text-gray-500 hover:text-gray-700'
@@ -269,7 +269,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Form Area */}
-                <div className="px-8 sm:px-12 pt-10 pb-10">
+                <div className="px-6 sm:px-9 py-6 sm:py-7">
                   {tab === 'login' ? (
                     <>
                       <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
@@ -285,7 +285,7 @@ export default function LoginPage() {
                         </div>
                       )}
 
-                      <form onSubmit={handleLogin} className="space-y-6">
+                      <form onSubmit={handleLogin} className="space-y-4">
                         <div>
                           <label className="block text-sm font-semibold text-gray-800 mb-2" htmlFor="email">
                             Correo electronico
@@ -297,7 +297,7 @@ export default function LoginPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="usuario@gpon.mx"
-                            className="w-full px-4 py-3 text-gray-600 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition duration-150 text-sm sm:text-base shadow-sm"
+                            className="w-full px-3.5 py-2.5 text-gray-700 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition duration-150 text-sm shadow-sm"
                           />
                         </div>
 
@@ -317,7 +317,7 @@ export default function LoginPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
-                            className="w-full px-4 py-3 text-gray-700 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition duration-150 text-sm sm:text-base shadow-sm tracking-widest"
+                            className="w-full px-3.5 py-2.5 text-gray-700 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition duration-150 text-sm shadow-sm tracking-widest"
                           />
                         </div>
 
@@ -325,7 +325,7 @@ export default function LoginPage() {
                           <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#1848bb] hover:bg-[#133aa0] active:bg-[#0f2f82] disabled:opacity-60 text-white font-bold py-3.5 px-6 rounded-xl transition duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 text-center text-base"
+                            className="w-full bg-[#1848bb] hover:bg-[#133aa0] active:bg-[#0f2f82] disabled:opacity-60 text-white font-bold py-3 px-6 rounded-xl transition duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 text-center text-sm sm:text-base"
                           >
                             {loading ? 'Ingresando...' : 'Acceder al sistema'}
                           </button>
@@ -352,7 +352,7 @@ export default function LoginPage() {
                         </div>
                       )}
 
-                      <form onSubmit={handleSolicitud} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                      <form onSubmit={handleSolicitud} className="space-y-3 max-h-[50vh] overflow-y-auto pr-2">
                         <div>
                           <label className="block text-xs font-semibold text-gray-800 mb-1">
                             Nombre de la institucion *

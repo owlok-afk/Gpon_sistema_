@@ -417,6 +417,11 @@ export default function MapaDashboardEdomex({
                         <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-50 text-[#0066cc] border border-blue-200">
                           CCT: {inst.cct || 'En trámite'}
                         </span>
+                        {inst.esExacta && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-300 flex items-center gap-1" title="Coordenadas GPS reales registradas en BD">
+                            GPS Real
+                          </span>
+                        )}
                         <span
                           className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                             inst.estado_vinculacion === 'vinculada'
